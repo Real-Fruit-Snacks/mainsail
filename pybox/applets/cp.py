@@ -4,41 +4,11 @@ import shutil
 import sys
 from pathlib import Path
 
-from pybox.common import err, err_path
+from pybox.common import err, err_path, should_overwrite
 
 NAME = "cp"
 ALIASES: list[str] = ["copy"]
 HELP = "copy files and directories"
-
-
-def _should_overwrite(
-    target: Path,
-    src: Path,
-    interactive: bool,
-    no_clobber: bool,
-    update: bool,
-    force: bool,
-) -> bool:
-    if not (target.exists() or target.is_symlink()):
-        return True
-    if no_clobber:
-        return False
-    if update:
-        try:
-            if src.stat().st_mtime <= target.stat().st_mtime:
-                return False
-        except OSError:
-            pass
-    if interactive and not force:
-        sys.stderr.write(f"{NAME}: overwrite '{target}'? ")
-        sys.stderr.flush()
-        try:
-            ans = sys.stdin.readline().strip().lower()
-        except (OSError, ValueError):
-            ans = ""
-        if not ans.startswith("y"):
-            return False
-    return True
 
 
 def main(argv: list[str]) -> int:
@@ -110,7 +80,11 @@ def main(argv: list[str]) -> int:
 
         target = dest_path / src_path.name if dest_is_dir else dest_path
 
-        if not _should_overwrite(target, src_path, interactive, no_clobber, update, force):
+        if not should_overwrite(
+            NAME, target, src_path,
+            interactive=interactive, no_clobber=no_clobber,
+            update=update, force=force,
+        ):
             continue
 
         try:

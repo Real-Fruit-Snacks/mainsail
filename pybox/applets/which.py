@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import shutil
+import sys
 
 from pybox.common import err
 
@@ -70,7 +71,7 @@ def main(argv: list[str]) -> int:
 
         if found:
             for match in found:
-                print(match)
+                sys.stdout.write(match + "\n")
                 if not all_matches:
                     break
         else:

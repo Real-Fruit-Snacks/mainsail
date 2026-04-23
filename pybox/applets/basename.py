@@ -58,7 +58,8 @@ def main(argv: list[str]) -> int:
         return 2
 
     end = "\0" if zero else "\n"
-    if multiple or suffix_all is not None:
+    # -s and -a both set `multiple`; otherwise POSIX form "PATH [SUFFIX]".
+    if multiple:
         paths = remaining
         suffix = suffix_all or ""
     else:

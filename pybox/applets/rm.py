@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import shutil
+import stat
 import sys
 from pathlib import Path
 
@@ -62,7 +63,7 @@ def main(argv: list[str]) -> int:
             rc = 1
             continue
 
-        is_dir = p.is_dir() and not p.is_symlink()
+        is_dir = stat.S_ISDIR(st.st_mode) and not stat.S_ISLNK(st.st_mode)
         try:
             if is_dir:
                 if recursive:
@@ -81,6 +82,4 @@ def main(argv: list[str]) -> int:
             if not force:
                 err_path(NAME, t, e)
                 rc = 1
-
-        _ = st
     return rc

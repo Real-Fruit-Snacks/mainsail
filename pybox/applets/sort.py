@@ -181,7 +181,7 @@ def main(argv: list[str]) -> int:
 
     def key_fn(s: str):
         if key_specs:
-            parts: list = []
+            parts: list[object] = []
             for spec in key_specs:
                 v = _extract_field(s, spec, separator)
                 v = base_transform(v)

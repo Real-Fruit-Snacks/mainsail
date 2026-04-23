@@ -13,7 +13,6 @@ HELP = "resolve a path to its canonical absolute form"
 def main(argv: list[str]) -> int:
     args = argv[1:]
     require_exist = False
-    allow_missing = False
     no_symlink = False
     zero = False
     relative_to: str | None = None
@@ -29,7 +28,8 @@ def main(argv: list[str]) -> int:
             i += 1
             continue
         if a in ("-m", "--canonicalize-missing"):
-            allow_missing = True
+            # Python's os.path.realpath already tolerates missing components,
+            # which matches GNU -m semantics. Accepted as no-op for compat.
             i += 1
             continue
         if a in ("-s", "-L", "--strip", "--no-symlinks"):
@@ -82,5 +82,4 @@ def main(argv: list[str]) -> int:
                 rc = 1
                 continue
         sys.stdout.write(result + end)
-    _ = allow_missing
     return rc

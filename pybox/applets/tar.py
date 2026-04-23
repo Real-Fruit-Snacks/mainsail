@@ -37,10 +37,6 @@ def _expand_bundled(args: list[str]) -> list[str]:
     return out + rest
 
 
-def _iter_paths(paths: list[str]) -> list[str]:
-    return list(paths)
-
-
 def _should_exclude(path: str, excludes: list[str]) -> bool:
     base = os.path.basename(path)
     return any(fnmatch.fnmatchcase(base, pat) or fnmatch.fnmatchcase(path, pat)

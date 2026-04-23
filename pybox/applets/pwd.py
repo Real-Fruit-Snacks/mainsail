@@ -30,6 +30,8 @@ def main(argv: list[str]) -> int:
     pwd_env = os.environ.get("PWD")
     if pwd_env and os.path.isabs(pwd_env):
         try:
+            # samefile raises OSError on Windows when PWD points to a missing
+            # or inaccessible path; treat that as "PWD is stale, fall back".
             if os.path.samefile(pwd_env, cwd):
                 sys.stdout.write(pwd_env + "\n")
                 return 0

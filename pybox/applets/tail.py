@@ -43,6 +43,8 @@ def _follow(follow_files: list[str], multi: bool, sleep_interval: float) -> int:
             continue
         fh.seek(0, 2)
         try:
+            # st_ino is 0 on Windows for regular files, so rotation detection
+            # effectively becomes a no-op there; we detect truncation instead.
             ino = os.fstat(fh.fileno()).st_ino
         except OSError:
             ino = 0

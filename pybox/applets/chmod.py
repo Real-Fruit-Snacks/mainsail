@@ -68,11 +68,13 @@ def _apply_clause(mode: int, clause: str) -> int:
     if op == "-":
         return mode & ~effective
     if op == "=":
+        # '=' clears the entire scope (rwx + suid/sgid for u/g) then applies
+        # whatever 'effective' bits were requested; '=' with no perms → zero.
         clear_mask = who_mask
-        if "s" in perms or has_u:
-            clear_mask |= 0o4000 if has_u else 0
-        if "s" in perms or has_g:
-            clear_mask |= 0o2000 if has_g else 0
+        if has_u:
+            clear_mask |= 0o4000
+        if has_g:
+            clear_mask |= 0o2000
         return (mode & ~clear_mask) | effective
     return mode
 

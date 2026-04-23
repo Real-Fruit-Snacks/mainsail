@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import os
 import sys
-from typing import Iterable
+from pathlib import Path
 
 try:
     import pwd as _pwd  # noqa: F401
@@ -41,41 +40,39 @@ def group_name(gid: int) -> str:
         return str(gid)
 
 
-def parse_short_flags(
-    args: list[str],
-    known: Iterable[str],
-) -> tuple[set[str], list[str]]:
-    """Parse POSIX-style short flags up to first non-flag or '--'.
+def should_overwrite(
+    applet: str,
+    target: Path,
+    src: Path,
+    *,
+    interactive: bool,
+    no_clobber: bool,
+    update: bool,
+    force: bool,
+) -> bool:
+    """Shared overwrite policy for cp/mv.
 
-    Returns (set of flag chars seen, remaining args).
+    Returns True if the caller should proceed with overwriting the target.
+    Honors -n (never), -u (only when source is strictly newer), and -i
+    (prompt y/n on stderr, reading the answer from stdin).
     """
-    known_set = set(known)
-    seen: set[str] = set()
-    i = 0
-    while i < len(args):
-        a = args[i]
-        if a == "--":
-            return seen, args[i + 1:]
-        if a == "-" or not a.startswith("-") or len(a) < 2:
-            break
-        chars = a[1:]
-        if not set(chars).issubset(known_set):
-            break
-        seen.update(chars)
-        i += 1
-    return seen, args[i:]
-
-
-def open_input(path: str):
-    """Open a file for binary read, or return sys.stdin.buffer for '-'."""
-    if path == "-":
-        return sys.stdin.buffer, False
-    return open(path, "rb"), True
-
-
-def write_bytes(data: bytes) -> None:
-    sys.stdout.buffer.write(data)
-
-
-def is_windows() -> bool:
-    return os.name == "nt"
+    if not (target.exists() or target.is_symlink()):
+        return True
+    if no_clobber:
+        return False
+    if update:
+        try:
+            if src.stat().st_mtime <= target.stat().st_mtime:
+                return False
+        except OSError:
+            pass
+    if interactive and not force:
+        sys.stderr.write(f"{applet}: overwrite '{target}'? ")
+        sys.stderr.flush()
+        try:
+            ans = sys.stdin.readline().strip().lower()
+        except (OSError, ValueError):
+            ans = ""
+        if not ans.startswith("y"):
+            return False
+    return True
