@@ -929,6 +929,82 @@ def test_xargs_L_lines(invoke, workspace, monkeypatch):
     assert content.count("[") == 3
 
 
+# basename / dirname / realpath
+
+def test_basename_simple(invoke):
+    rc, out, _ = invoke("basename", "/a/b/c.txt")
+    assert rc == 0
+    assert out == "c.txt\n"
+
+
+def test_basename_suffix(invoke):
+    rc, out, _ = invoke("basename", "/a/b/c.txt", ".txt")
+    assert rc == 0
+    assert out == "c\n"
+
+
+def test_basename_trailing_slash(invoke):
+    rc, out, _ = invoke("basename", "/a/b/c/")
+    assert rc == 0
+    assert out == "c\n"
+
+
+def test_basename_a_multiple(invoke):
+    rc, out, _ = invoke("basename", "-a", "/a/x.py", "/b/y.py")
+    assert rc == 0
+    assert out.splitlines() == ["x.py", "y.py"]
+
+
+def test_basename_s_suffix(invoke):
+    rc, out, _ = invoke("basename", "-s", ".py", "a.py", "b.py")
+    assert rc == 0
+    assert out.splitlines() == ["a", "b"]
+
+
+def test_dirname_simple(invoke):
+    rc, out, _ = invoke("dirname", "/a/b/c.txt")
+    assert rc == 0
+    assert out == "/a/b\n"
+
+
+def test_dirname_no_dir(invoke):
+    rc, out, _ = invoke("dirname", "file.txt")
+    assert rc == 0
+    assert out == ".\n"
+
+
+def test_dirname_multiple(invoke):
+    rc, out, _ = invoke("dirname", "/a/b.txt", "/c/d.py")
+    assert rc == 0
+    assert out.splitlines() == ["/a", "/c"]
+
+
+def test_realpath_absolute(invoke, workspace):
+    f = workspace / "x.txt"
+    f.write_bytes(b"")
+    rc, out, _ = invoke("realpath", str(f))
+    assert rc == 0
+    assert os.path.isabs(out.strip())
+
+
+def test_realpath_relative(invoke, workspace):
+    f = workspace / "rel.txt"
+    f.write_bytes(b"")
+    rc, out, _ = invoke("realpath", "rel.txt")
+    assert rc == 0
+    assert os.path.samefile(out.strip(), f)
+
+
+def test_realpath_relative_to(invoke, workspace):
+    (workspace / "sub").mkdir()
+    f = workspace / "sub" / "x.txt"
+    f.write_bytes(b"")
+    rc, out, _ = invoke("realpath", "--relative-to", str(workspace), str(f))
+    assert rc == 0
+    result = out.strip().replace("\\", "/")
+    assert result == "sub/x.txt"
+
+
 # aliases
 
 def test_alias_type_is_cat(invoke, workspace):
