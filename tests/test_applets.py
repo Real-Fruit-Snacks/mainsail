@@ -148,6 +148,100 @@ def test_find_type_d(invoke, workspace):
     assert not any(ln.endswith("f1") for ln in lines)
 
 
+def test_find_size(invoke, workspace):
+    (workspace / "empty").write_bytes(b"")
+    (workspace / "small").write_bytes(b"x" * 10)
+    (workspace / "big").write_bytes(b"x" * 2000)
+    rc, out, _ = invoke("find", ".", "-type", "f", "-size", "+100c")
+    assert rc == 0
+    paths = [p for p in out.splitlines() if p]
+    assert any("big" in p for p in paths)
+    assert not any("small" in p for p in paths)
+    assert not any("empty" in p for p in paths)
+
+
+def test_find_empty(invoke, workspace):
+    (workspace / "full.txt").write_bytes(b"x")
+    (workspace / "empty.txt").write_bytes(b"")
+    rc, out, _ = invoke("find", ".", "-type", "f", "-empty")
+    assert rc == 0
+    paths = [p for p in out.splitlines() if p]
+    assert any("empty.txt" in p for p in paths)
+    assert not any("full.txt" in p for p in paths)
+
+
+def test_find_not(invoke, workspace):
+    (workspace / "a.txt").write_bytes(b"")
+    (workspace / "b.log").write_bytes(b"")
+    rc, out, _ = invoke("find", ".", "-type", "f", "!", "-name", "*.log")
+    assert rc == 0
+    paths = [p for p in out.splitlines() if p]
+    assert any("a.txt" in p for p in paths)
+    assert not any("b.log" in p for p in paths)
+
+
+def test_find_or_parens(invoke, workspace):
+    (workspace / "a.txt").write_bytes(b"")
+    (workspace / "b.log").write_bytes(b"")
+    (workspace / "c.md").write_bytes(b"")
+    rc, out, _ = invoke(
+        "find", ".", "-type", "f", "(",
+        "-name", "*.txt", "-o", "-name", "*.log", ")",
+    )
+    assert rc == 0
+    paths = [p for p in out.splitlines() if p]
+    assert any("a.txt" in p for p in paths)
+    assert any("b.log" in p for p in paths)
+    assert not any("c.md" in p for p in paths)
+
+
+def test_find_delete(invoke, workspace):
+    (workspace / "doomed.tmp").write_bytes(b"")
+    (workspace / "safe.txt").write_bytes(b"")
+    rc, _, _ = invoke("find", ".", "-name", "*.tmp", "-delete")
+    assert rc == 0
+    assert not (workspace / "doomed.tmp").exists()
+    assert (workspace / "safe.txt").exists()
+
+
+def test_find_prune(invoke, workspace):
+    (workspace / "good").mkdir()
+    (workspace / "good" / "keep.txt").write_bytes(b"")
+    (workspace / "skip").mkdir()
+    (workspace / "skip" / "hide.txt").write_bytes(b"")
+    rc, out, _ = invoke("find", ".", "-name", "skip", "-prune", "-o", "-print")
+    assert rc == 0
+    paths = [p for p in out.splitlines() if p]
+    assert any("keep.txt" in p for p in paths)
+    assert not any("hide.txt" in p for p in paths)
+
+
+def test_find_newer(invoke, workspace):
+    import time as t
+    a = workspace / "a.txt"
+    a.write_bytes(b"a")
+    t.sleep(0.05)
+    b = workspace / "b.txt"
+    b.write_bytes(b"b")
+    rc, out, _ = invoke("find", ".", "-type", "f", "-newer", str(a))
+    assert rc == 0
+    paths = [p for p in out.splitlines() if p]
+    assert any("b.txt" in p for p in paths)
+    assert not any("a.txt" in p for p in paths)
+
+
+def test_find_exec(invoke, workspace):
+    (workspace / "target.txt").write_bytes(b"hi")
+    marker = workspace / "marker.out"
+    script = f"open(r'{marker}', 'w').write('ok')"
+    rc, _, _ = invoke(
+        "find", ".", "-name", "target.txt",
+        "-exec", sys.executable, "-c", script, ";",
+    )
+    assert rc == 0
+    assert marker.exists() and marker.read_text() == "ok"
+
+
 # grep
 
 def test_grep_basic(invoke, workspace):
