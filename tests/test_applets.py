@@ -308,6 +308,43 @@ def test_sort_u(invoke, workspace):
     assert out == "a\nb\n"
 
 
+def test_sort_k_field(invoke, workspace):
+    (workspace / "f.txt").write_text("b 1\na 2\nc 0\n")
+    rc, out, _ = invoke("sort", "-k", "2", "f.txt")
+    assert rc == 0
+    assert out.splitlines() == ["c 0", "b 1", "a 2"]
+
+
+def test_sort_k_numeric(invoke, workspace):
+    (workspace / "f.txt").write_text("x 10\ny 2\nz 100\n")
+    rc, out, _ = invoke("sort", "-k", "2n", "f.txt")
+    assert rc == 0
+    assert out.splitlines() == ["y 2", "x 10", "z 100"]
+
+
+def test_sort_t_separator(invoke, workspace):
+    (workspace / "f.txt").write_text("c,1\na,3\nb,2\n")
+    rc, out, _ = invoke("sort", "-t", ",", "-k", "2n", "f.txt")
+    assert rc == 0
+    assert out.splitlines() == ["c,1", "b,2", "a,3"]
+
+
+def test_sort_o_output(invoke, workspace):
+    (workspace / "in.txt").write_text("c\na\nb\n")
+    rc, out, _ = invoke("sort", "-o", "out.txt", "in.txt")
+    assert rc == 0
+    assert out == ""
+    # read as bytes to avoid text-mode translation
+    assert (workspace / "out.txt").read_bytes() == b"a\nb\nc\n"
+
+
+def test_sort_multiple_keys(invoke, workspace):
+    (workspace / "f.txt").write_text("a 2\nb 1\na 1\n")
+    rc, out, _ = invoke("sort", "-k", "1", "-k", "2n", "f.txt")
+    assert rc == 0
+    assert out.splitlines() == ["a 1", "a 2", "b 1"]
+
+
 # which
 
 def test_which_python(invoke):
