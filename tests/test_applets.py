@@ -416,6 +416,37 @@ def test_tail(invoke, workspace):
     assert out == "17\n18\n19\n"
 
 
+def test_tail_f_follows_append(workspace):
+    """Run 'pybox tail -f' as a subprocess and verify it picks up appends."""
+    import subprocess
+    import time as t
+    pybox_root = Path(__file__).resolve().parent.parent
+    f = workspace / "follow.log"
+    f.write_bytes(b"initial\n")
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(pybox_root) + os.pathsep + env.get("PYTHONPATH", "")
+    proc = subprocess.Popen(
+        [sys.executable, "-m", "pybox", "tail", "-f", "-s", "0.05", str(f)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env=env,
+        cwd=str(workspace),
+    )
+    try:
+        t.sleep(0.3)
+        with f.open("ab") as fh:
+            fh.write(b"appended\n")
+        t.sleep(0.4)
+    finally:
+        proc.terminate()
+        try:
+            out, _ = proc.communicate(timeout=3)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            out, _ = proc.communicate()
+    assert b"appended" in out
+
+
 def test_wc(invoke, workspace):
     (workspace / "f.txt").write_text("one two\nthree four five\n")
     rc, out, _ = invoke("wc", "-l", "f.txt")
