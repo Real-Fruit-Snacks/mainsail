@@ -1375,6 +1375,54 @@ def test_whoami_matches_getpass(invoke):
     assert out.strip() == _g.getuser()
 
 
+# date
+
+def test_date_default_has_year(invoke):
+    from datetime import datetime as _dt
+    rc, out, _ = invoke("date")
+    assert rc == 0
+    assert str(_dt.now().year) in out
+
+
+def test_date_custom_format(invoke):
+    from datetime import datetime as _dt
+    rc, out, _ = invoke("date", "+%Y")
+    assert rc == 0
+    assert out.strip() == str(_dt.now().year)
+
+
+def test_date_parse_d(invoke):
+    rc, out, _ = invoke("date", "-d", "2020-01-15", "+%Y-%m-%d")
+    assert rc == 0
+    assert out.strip() == "2020-01-15"
+
+
+def test_date_r_from_file(invoke, workspace):
+    f = workspace / "ref.txt"
+    f.write_bytes(b"")
+    known_mtime = 1577880000.0  # 2020-01-01 fixed reference
+    os.utime(f, (known_mtime, known_mtime))
+    rc, out, _ = invoke("date", "-r", str(f), "+%Y")
+    assert rc == 0
+    assert out.strip() == "2020"
+
+
+def test_date_iso_date(invoke):
+    from datetime import datetime as _dt
+    rc, out, _ = invoke("date", "-I")
+    assert rc == 0
+    parts = out.strip().split("-")
+    assert len(parts) == 3
+    assert int(parts[0]) == _dt.now().year
+
+
+def test_date_utc_flag(invoke):
+    rc, out, _ = invoke("date", "-u", "+%Z")
+    assert rc == 0
+    # Python's strftime %Z yields 'UTC' when tz-aware UTC
+    assert "UTC" in out or "utc" in out.lower()
+
+
 def test_yes_subprocess(workspace):
     """yes runs forever; drive it via subprocess and kill after we get output."""
     import subprocess
