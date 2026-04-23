@@ -1177,6 +1177,79 @@ def test_stat_missing(invoke, workspace):
     assert "does_not_exist" in err_text
 
 
+# du
+
+def test_du_summary(invoke, workspace):
+    d = workspace / "tree"
+    d.mkdir()
+    (d / "a.bin").write_bytes(b"x" * 2048)
+    (d / "b.bin").write_bytes(b"y" * 1024)
+    rc, out, _ = invoke("du", "-s", str(d))
+    assert rc == 0
+    # Total should be at least 3 (3072 bytes / 1024 = 3 blocks)
+    size_str = out.strip().split("\t")[0]
+    assert int(size_str) >= 3
+
+
+def test_du_bytes_exact(invoke, workspace):
+    d = workspace / "tree"
+    d.mkdir()
+    (d / "x.bin").write_bytes(b"x" * 100)
+    rc, out, _ = invoke("du", "-sb", str(d))
+    assert rc == 0
+    size = int(out.strip().split("\t")[0])
+    assert size >= 100
+
+
+def test_du_all_files(invoke, workspace):
+    d = workspace / "tree"
+    d.mkdir()
+    (d / "f1").write_bytes(b"a")
+    (d / "f2").write_bytes(b"bb")
+    rc, out, _ = invoke("du", "-a", str(d))
+    assert rc == 0
+    assert "f1" in out
+    assert "f2" in out
+
+
+def test_du_human(invoke, workspace):
+    d = workspace / "tree"
+    d.mkdir()
+    (d / "big").write_bytes(b"x" * (2 * 1024 * 1024))  # 2 MiB
+    rc, out, _ = invoke("du", "-sh", str(d))
+    assert rc == 0
+    # Should contain a unit suffix like M or K
+    first = out.strip().split("\t")[0]
+    assert any(first.endswith(u) for u in ("K", "M", "G"))
+
+
+def test_du_grand_total(invoke, workspace):
+    a = workspace / "a"
+    a.mkdir()
+    (a / "x").write_bytes(b"x" * 1024)
+    b = workspace / "b"
+    b.mkdir()
+    (b / "y").write_bytes(b"y" * 1024)
+    rc, out, _ = invoke("du", "-sc", str(a), str(b))
+    assert rc == 0
+    assert "total" in out
+
+
+# df
+
+def test_df_runs(invoke):
+    rc, out, _ = invoke("df", ".")
+    assert rc == 0
+    assert "Filesystem" in out
+    assert "Mounted on" in out
+
+
+def test_df_human(invoke):
+    rc, out, _ = invoke("df", "-h", ".")
+    assert rc == 0
+    assert "Size" in out
+
+
 # aliases
 
 def test_alias_type_is_cat(invoke, workspace):
