@@ -1069,6 +1069,61 @@ def test_chmod_verbose(invoke, workspace):
         os.chmod(f, 0o644)
 
 
+# ln
+
+def test_ln_hard(invoke, workspace):
+    target = workspace / "target.txt"
+    target.write_bytes(b"payload")
+    link = workspace / "link.txt"
+    rc, _, _ = invoke("ln", str(target), str(link))
+    assert rc == 0
+    assert link.read_bytes() == b"payload"
+    # On POSIX, same inode; on Windows, same file content suffices
+    if os.name != "nt":
+        assert target.stat().st_ino == link.stat().st_ino
+
+
+def test_ln_symbolic(invoke, workspace):
+    import pytest as _pytest
+    target = workspace / "target.txt"
+    target.write_bytes(b"symdata")
+    link = workspace / "slink.txt"
+    rc, _, err_text = invoke("ln", "-s", str(target), str(link))
+    if rc != 0:
+        _pytest.skip(f"symlink creation not permitted: {err_text.strip()}")
+    assert link.is_symlink()
+    assert link.read_bytes() == b"symdata"
+
+
+def test_ln_f_force_replace(invoke, workspace):
+    target = workspace / "target.txt"
+    target.write_bytes(b"new")
+    link = workspace / "existing.txt"
+    link.write_bytes(b"old")
+    rc, _, _ = invoke("ln", "-f", str(target), str(link))
+    assert rc == 0
+    assert link.read_bytes() == b"new"
+
+
+def test_ln_error_on_existing(invoke, workspace):
+    target = workspace / "target.txt"
+    target.write_bytes(b"")
+    link = workspace / "already.txt"
+    link.write_bytes(b"")
+    rc, _, _ = invoke("ln", str(target), str(link))
+    assert rc == 1
+
+
+def test_ln_into_directory(invoke, workspace):
+    target = workspace / "src.txt"
+    target.write_bytes(b"content")
+    d = workspace / "bin"
+    d.mkdir()
+    rc, _, _ = invoke("ln", str(target), str(d))
+    assert rc == 0
+    assert (d / "src.txt").read_bytes() == b"content"
+
+
 # aliases
 
 def test_alias_type_is_cat(invoke, workspace):
