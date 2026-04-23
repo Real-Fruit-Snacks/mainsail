@@ -648,6 +648,61 @@ def test_env_prints(invoke, monkeypatch):
     assert "PYBOX_TEST_VAR=xyz" in out
 
 
+# tr
+
+def _with_stdin(monkeypatch, data: bytes) -> None:
+    import io as _io
+
+    class _Stdin:
+        def __init__(self, buf): self.buffer = _io.BytesIO(buf)
+        def read(self): return self.buffer.read().decode("utf-8", errors="replace")
+        def readline(self): return self.buffer.readline().decode("utf-8", errors="replace")
+        def isatty(self): return False
+    monkeypatch.setattr(sys, "stdin", _Stdin(data))
+
+
+def test_tr_translate(invoke, monkeypatch):
+    _with_stdin(monkeypatch, b"hello\n")
+    rc, out, _ = invoke("tr", "a-z", "A-Z")
+    assert rc == 0
+    assert out == "HELLO\n"
+
+
+def test_tr_delete(invoke, monkeypatch):
+    _with_stdin(monkeypatch, b"hello world\n")
+    rc, out, _ = invoke("tr", "-d", "aeiou")
+    assert rc == 0
+    assert out == "hll wrld\n"
+
+
+def test_tr_squeeze(invoke, monkeypatch):
+    _with_stdin(monkeypatch, b"a   b  c\n")
+    rc, out, _ = invoke("tr", "-s", " ")
+    assert rc == 0
+    assert out == "a b c\n"
+
+
+def test_tr_complement_delete(invoke, monkeypatch):
+    _with_stdin(monkeypatch, b"hi 42 there\n")
+    rc, out, _ = invoke("tr", "-cd", "0-9")
+    assert rc == 0
+    assert out == "42"
+
+
+def test_tr_class_digit(invoke, monkeypatch):
+    _with_stdin(monkeypatch, b"abc123\n")
+    rc, out, _ = invoke("tr", "[:digit:]", "#")
+    assert rc == 0
+    assert out == "abc###\n"
+
+
+def test_tr_escape_newline(invoke, monkeypatch):
+    _with_stdin(monkeypatch, b"a:b:c")
+    rc, out, _ = invoke("tr", ":", "\\n")
+    assert rc == 0
+    assert out == "a\nb\nc"
+
+
 # aliases
 
 def test_alias_type_is_cat(invoke, workspace):
