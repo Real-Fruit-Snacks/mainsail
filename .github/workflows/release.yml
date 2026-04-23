@@ -27,7 +27,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install Nuitka
-        run: python -m pip install nuitka
+        run: python -m pip install "Nuitka[onefile]"
       - name: Build
         run: python build.py
       - name: Rename artifact

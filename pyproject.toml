@@ -31,7 +31,7 @@ pybox = "pybox.cli:main"
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
-build = ["nuitka>=2.0"]
+build = ["nuitka[onefile]>=2.0"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["pybox"]
