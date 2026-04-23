@@ -82,6 +82,7 @@ ls -la   # runs the ls applet
 | `pwd`   |                    | print name of current/working directory |
 | `realpath` |                | resolve a path to its canonical absolute form |
 | `rm`    | `del`, `erase`     | remove files or directories |
+| `sed`   |                    | stream editor (s///, d, p, q, =, y, addresses) |
 | `seq`   |                    | print a sequence of numbers |
 | `sleep` |                    | delay for a specified amount of time |
 | `sort`  |                    | sort lines of text files |
