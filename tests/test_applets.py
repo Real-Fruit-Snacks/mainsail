@@ -1250,6 +1250,53 @@ def test_df_human(invoke):
     assert "Size" in out
 
 
+# true / false / yes
+
+def test_true_exit_0(invoke):
+    rc, out, _ = invoke("true")
+    assert rc == 0
+    assert out == ""
+
+
+def test_true_ignores_args(invoke):
+    rc, _, _ = invoke("true", "ignored", "args")
+    assert rc == 0
+
+
+def test_false_exit_1(invoke):
+    rc, out, _ = invoke("false")
+    assert rc == 1
+    assert out == ""
+
+
+def test_yes_subprocess(workspace):
+    """yes runs forever; drive it via subprocess and kill after we get output."""
+    import subprocess
+    import time as t
+    pybox_root = Path(__file__).resolve().parent.parent
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(pybox_root) + os.pathsep + env.get("PYTHONPATH", "")
+    proc = subprocess.Popen(
+        [sys.executable, "-m", "pybox", "yes", "hello"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env=env,
+        cwd=str(workspace),
+    )
+    try:
+        t.sleep(0.2)
+    finally:
+        proc.terminate()
+        try:
+            out, _ = proc.communicate(timeout=2)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            out, _ = proc.communicate()
+    lines = out.splitlines()
+    assert len(lines) > 10
+    assert lines[0] == b"hello"
+
+
 # aliases
 
 def test_alias_type_is_cat(invoke, workspace):
