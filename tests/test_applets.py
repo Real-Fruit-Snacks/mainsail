@@ -1784,6 +1784,89 @@ def test_gzip_decompress_flag(invoke, workspace):
     assert (workspace / "x.txt").read_bytes() == b"yo"
 
 
+# zip / unzip
+
+def test_zip_and_unzip_roundtrip(invoke, workspace):
+    (workspace / "a.txt").write_bytes(b"alpha")
+    (workspace / "b.txt").write_bytes(b"beta")
+    archive = workspace / "out.zip"
+    rc, _, _ = invoke("zip", str(archive), "a.txt", "b.txt")
+    assert rc == 0
+    assert archive.exists()
+
+    target = workspace / "extracted"
+    rc, _, _ = invoke("unzip", "-d", str(target), str(archive))
+    assert rc == 0
+    assert (target / "a.txt").read_bytes() == b"alpha"
+    assert (target / "b.txt").read_bytes() == b"beta"
+
+
+def test_zip_recursive(invoke, workspace):
+    src = workspace / "src"
+    src.mkdir()
+    (src / "inner.txt").write_bytes(b"nested")
+    archive = workspace / "out.zip"
+    rc, _, _ = invoke("zip", "-r", str(archive), "src")
+    assert rc == 0
+    target = workspace / "out"
+    rc, _, _ = invoke("unzip", "-d", str(target), str(archive))
+    assert rc == 0
+    # The arcname includes "src/inner.txt" path
+    candidates = list(target.rglob("inner.txt"))
+    assert candidates and candidates[0].read_bytes() == b"nested"
+
+
+def test_zip_refuses_dir_without_r(invoke, workspace):
+    d = workspace / "d"
+    d.mkdir()
+    archive = workspace / "out.zip"
+    rc, _, _ = invoke("zip", str(archive), "d")
+    assert rc == 1
+
+
+def test_zip_junk_paths(invoke, workspace):
+    (workspace / "sub").mkdir()
+    (workspace / "sub" / "deep.txt").write_bytes(b"content")
+    archive = workspace / "out.zip"
+    rc, _, _ = invoke("zip", "-j", str(archive), "sub/deep.txt")
+    assert rc == 0
+    # Archive should have "deep.txt" at root, not "sub/deep.txt"
+    rc, out, _ = invoke("unzip", "-l", str(archive))
+    assert rc == 0
+    assert "deep.txt" in out
+    assert "sub/deep.txt" not in out and "sub\\deep.txt" not in out
+
+
+def test_unzip_list(invoke, workspace):
+    (workspace / "a.txt").write_bytes(b"a")
+    archive = workspace / "out.zip"
+    invoke("zip", str(archive), "a.txt")
+    rc, out, _ = invoke("unzip", "-l", str(archive))
+    assert rc == 0
+    assert "a.txt" in out
+    assert "Archive:" in out
+
+
+def test_unzip_pipe_mode(invoke, workspace):
+    (workspace / "payload.bin").write_bytes(b"raw-bytes")
+    archive = workspace / "out.zip"
+    invoke("zip", str(archive), "payload.bin")
+    rc, out, _ = invoke("unzip", "-p", str(archive), "payload.bin")
+    assert rc == 0
+    assert out == "raw-bytes"
+
+
+def test_unzip_n_never_overwrite(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"original")
+    archive = workspace / "out.zip"
+    invoke("zip", str(archive), "f.txt")
+    (workspace / "extracted").mkdir()
+    (workspace / "extracted" / "f.txt").write_bytes(b"existing")
+    rc, _, _ = invoke("unzip", "-n", "-d", str(workspace / "extracted"), str(archive))
+    assert rc == 0
+    assert (workspace / "extracted" / "f.txt").read_bytes() == b"existing"
+
+
 def test_yes_subprocess(workspace):
     """yes runs forever; drive it via subprocess and kill after we get output."""
     import subprocess
