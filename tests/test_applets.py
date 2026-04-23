@@ -823,6 +823,43 @@ def test_uniq_skip_fields(invoke, workspace):
     assert out == "1 apple\n3 banana\n"
 
 
+# tee
+
+def test_tee_basic(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"hello\n")
+    rc, out, _ = invoke("tee", "out.txt")
+    assert rc == 0
+    assert out == "hello\n"
+    assert (workspace / "out.txt").read_bytes() == b"hello\n"
+
+
+def test_tee_multiple_files(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"broadcast\n")
+    rc, out, _ = invoke("tee", "a.txt", "b.txt", "c.txt")
+    assert rc == 0
+    assert out == "broadcast\n"
+    assert (workspace / "a.txt").read_bytes() == b"broadcast\n"
+    assert (workspace / "b.txt").read_bytes() == b"broadcast\n"
+    assert (workspace / "c.txt").read_bytes() == b"broadcast\n"
+
+
+def test_tee_append(invoke, workspace, monkeypatch):
+    (workspace / "out.txt").write_bytes(b"existing\n")
+    _with_stdin(monkeypatch, b"added\n")
+    rc, out, _ = invoke("tee", "-a", "out.txt")
+    assert rc == 0
+    assert out == "added\n"
+    assert (workspace / "out.txt").read_bytes() == b"existing\nadded\n"
+
+
+def test_tee_no_files(invoke, workspace, monkeypatch):
+    """tee with no files is effectively cat, writing stdin to stdout."""
+    _with_stdin(monkeypatch, b"just passthrough\n")
+    rc, out, _ = invoke("tee")
+    assert rc == 0
+    assert out == "just passthrough\n"
+
+
 # aliases
 
 def test_alias_type_is_cat(invoke, workspace):
