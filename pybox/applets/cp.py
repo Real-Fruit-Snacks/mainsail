@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import shutil
 import sys
 from pathlib import Path
@@ -12,14 +11,45 @@ ALIASES: list[str] = ["copy"]
 HELP = "copy files and directories"
 
 
+def _should_overwrite(
+    target: Path,
+    src: Path,
+    interactive: bool,
+    no_clobber: bool,
+    update: bool,
+    force: bool,
+) -> bool:
+    if not (target.exists() or target.is_symlink()):
+        return True
+    if no_clobber:
+        return False
+    if update:
+        try:
+            if src.stat().st_mtime <= target.stat().st_mtime:
+                return False
+        except OSError:
+            pass
+    if interactive and not force:
+        sys.stderr.write(f"{NAME}: overwrite '{target}'? ")
+        sys.stderr.flush()
+        try:
+            ans = sys.stdin.readline().strip().lower()
+        except (OSError, ValueError):
+            ans = ""
+        if not ans.startswith("y"):
+            return False
+    return True
+
+
 def main(argv: list[str]) -> int:
     args = argv[1:]
     recursive = False
     force = False
     verbose = False
     preserve_meta = False
-    sources: list[str] = []
-    dest: str | None = None
+    interactive = False
+    no_clobber = False
+    update = False
 
     i = 0
     while i < len(args):
@@ -34,6 +64,8 @@ def main(argv: list[str]) -> int:
                 recursive = True
             elif ch == "f":
                 force = True
+                interactive = False
+                no_clobber = False
             elif ch == "v":
                 verbose = True
             elif ch == "p":
@@ -41,6 +73,15 @@ def main(argv: list[str]) -> int:
             elif ch == "a":
                 recursive = True
                 preserve_meta = True
+            elif ch == "i":
+                interactive = True
+                no_clobber = False
+                force = False
+            elif ch == "n":
+                no_clobber = True
+                interactive = False
+            elif ch == "u":
+                update = True
             else:
                 err(NAME, f"invalid option: -{ch}")
                 return 2
@@ -69,6 +110,9 @@ def main(argv: list[str]) -> int:
 
         target = dest_path / src_path.name if dest_is_dir else dest_path
 
+        if not _should_overwrite(target, src_path, interactive, no_clobber, update, force):
+            continue
+
         try:
             if src_path.is_dir() and not src_path.is_symlink():
                 if not recursive:
@@ -76,15 +120,13 @@ def main(argv: list[str]) -> int:
                     rc = 1
                     continue
                 if target.exists():
-                    if force:
+                    if target.is_dir() and not target.is_symlink():
                         shutil.rmtree(target)
                     else:
-                        err(NAME, f"cannot overwrite directory '{target}' with non-directory")
-                        rc = 1
-                        continue
+                        target.unlink()
                 shutil.copytree(src_path, target, symlinks=True)
             else:
-                if target.exists() and force:
+                if target.exists() or target.is_symlink():
                     try:
                         target.unlink()
                     except OSError:
@@ -99,5 +141,4 @@ def main(argv: list[str]) -> int:
             err_path(NAME, src, e)
             rc = 1
 
-    _ = os  # used indirectly
     return rc

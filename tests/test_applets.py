@@ -161,6 +161,74 @@ def test_mv(invoke, workspace):
     assert (workspace / "b.txt").read_text() == "data"
 
 
+def test_cp_n_noclobber(invoke, workspace):
+    (workspace / "src.txt").write_bytes(b"new")
+    (workspace / "dst.txt").write_bytes(b"old")
+    rc, _, _ = invoke("cp", "-n", "src.txt", "dst.txt")
+    assert rc == 0
+    assert (workspace / "dst.txt").read_bytes() == b"old"
+
+
+def test_cp_u_skip_when_target_newer(invoke, workspace):
+    import time as t
+    (workspace / "src.txt").write_bytes(b"older_content")
+    t.sleep(0.05)
+    (workspace / "dst.txt").write_bytes(b"newer_content")
+    rc, _, _ = invoke("cp", "-u", "src.txt", "dst.txt")
+    assert rc == 0
+    assert (workspace / "dst.txt").read_bytes() == b"newer_content"
+
+
+def test_cp_u_overwrite_when_source_newer(invoke, workspace):
+    import time as t
+    (workspace / "dst.txt").write_bytes(b"older")
+    t.sleep(0.05)
+    (workspace / "src.txt").write_bytes(b"newer")
+    rc, _, _ = invoke("cp", "-u", "src.txt", "dst.txt")
+    assert rc == 0
+    assert (workspace / "dst.txt").read_bytes() == b"newer"
+
+
+def test_cp_i_yes(invoke, workspace, monkeypatch):
+    import io as _io
+    (workspace / "src.txt").write_bytes(b"new")
+    (workspace / "dst.txt").write_bytes(b"old")
+    monkeypatch.setattr(sys, "stdin", _io.StringIO("y\n"))
+    rc, _, _ = invoke("cp", "-i", "src.txt", "dst.txt")
+    assert rc == 0
+    assert (workspace / "dst.txt").read_bytes() == b"new"
+
+
+def test_cp_i_no(invoke, workspace, monkeypatch):
+    import io as _io
+    (workspace / "src.txt").write_bytes(b"new")
+    (workspace / "dst.txt").write_bytes(b"old")
+    monkeypatch.setattr(sys, "stdin", _io.StringIO("n\n"))
+    rc, _, _ = invoke("cp", "-i", "src.txt", "dst.txt")
+    assert rc == 0
+    assert (workspace / "dst.txt").read_bytes() == b"old"
+
+
+def test_mv_n_noclobber(invoke, workspace):
+    (workspace / "src.txt").write_bytes(b"new")
+    (workspace / "dst.txt").write_bytes(b"old")
+    rc, _, _ = invoke("mv", "-n", "src.txt", "dst.txt")
+    assert rc == 0
+    assert (workspace / "src.txt").exists()
+    assert (workspace / "dst.txt").read_bytes() == b"old"
+
+
+def test_mv_u_skip_when_target_newer(invoke, workspace):
+    import time as t
+    (workspace / "src.txt").write_bytes(b"src_content")
+    t.sleep(0.05)
+    (workspace / "dst.txt").write_bytes(b"dst_content")
+    rc, _, _ = invoke("mv", "-u", "src.txt", "dst.txt")
+    assert rc == 0
+    assert (workspace / "src.txt").exists()
+    assert (workspace / "dst.txt").read_bytes() == b"dst_content"
+
+
 def test_rm(invoke, workspace):
     (workspace / "a.txt").write_text("x")
     rc, _, _ = invoke("rm", "a.txt")

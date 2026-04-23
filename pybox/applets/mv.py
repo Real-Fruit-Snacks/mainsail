@@ -11,11 +11,43 @@ ALIASES: list[str] = ["move", "ren", "rename"]
 HELP = "move (rename) files"
 
 
+def _should_overwrite(
+    target: Path,
+    src: Path,
+    interactive: bool,
+    no_clobber: bool,
+    update: bool,
+    force: bool,
+) -> bool:
+    if not (target.exists() or target.is_symlink()):
+        return True
+    if no_clobber:
+        return False
+    if update:
+        try:
+            if src.stat().st_mtime <= target.stat().st_mtime:
+                return False
+        except OSError:
+            pass
+    if interactive and not force:
+        sys.stderr.write(f"{NAME}: overwrite '{target}'? ")
+        sys.stderr.flush()
+        try:
+            ans = sys.stdin.readline().strip().lower()
+        except (OSError, ValueError):
+            ans = ""
+        if not ans.startswith("y"):
+            return False
+    return True
+
+
 def main(argv: list[str]) -> int:
     args = argv[1:]
     force = False
     verbose = False
     no_clobber = False
+    interactive = False
+    update = False
 
     i = 0
     while i < len(args):
@@ -29,9 +61,17 @@ def main(argv: list[str]) -> int:
             if ch == "f":
                 force = True
                 no_clobber = False
+                interactive = False
             elif ch == "n":
                 no_clobber = True
                 force = False
+                interactive = False
+            elif ch == "i":
+                interactive = True
+                force = False
+                no_clobber = False
+            elif ch == "u":
+                update = True
             elif ch == "v":
                 verbose = True
             else:
@@ -59,14 +99,10 @@ def main(argv: list[str]) -> int:
             continue
 
         target = dest / src_path.name if dest_is_dir else dest
-        if target.exists():
-            if no_clobber:
-                continue
-            if not force and sys.stdin.isatty():
-                sys.stderr.write(f"mv: overwrite '{target}'? ")
-                ans = sys.stdin.readline().strip().lower()
-                if not ans.startswith("y"):
-                    continue
+
+        if not _should_overwrite(target, src_path, interactive, no_clobber, update, force):
+            continue
+
         try:
             shutil.move(str(src_path), str(target))
             if verbose:
