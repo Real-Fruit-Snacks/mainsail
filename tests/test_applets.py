@@ -703,6 +703,72 @@ def test_tr_escape_newline(invoke, monkeypatch):
     assert out == "a\nb\nc"
 
 
+# cut
+
+def test_cut_f_single(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"a\tb\tc\nd\te\tf\n")
+    rc, out, _ = invoke("cut", "-f", "2", "f.txt")
+    assert rc == 0
+    assert out == "b\ne\n"
+
+
+def test_cut_f_multiple(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"a\tb\tc\td\n")
+    rc, out, _ = invoke("cut", "-f", "1,3", "f.txt")
+    assert rc == 0
+    assert out == "a\tc\n"
+
+
+def test_cut_f_range(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"a\tb\tc\td\te\n")
+    rc, out, _ = invoke("cut", "-f", "2-4", "f.txt")
+    assert rc == 0
+    assert out == "b\tc\td\n"
+
+
+def test_cut_f_open_range(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"a\tb\tc\td\n")
+    rc, out, _ = invoke("cut", "-f", "3-", "f.txt")
+    assert rc == 0
+    assert out == "c\td\n"
+
+
+def test_cut_d_custom(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"a,b,c,d\n")
+    rc, out, _ = invoke("cut", "-d", ",", "-f", "1,3", "f.txt")
+    assert rc == 0
+    assert out == "a,c\n"
+
+
+def test_cut_c_range(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"hello\nworld\n")
+    rc, out, _ = invoke("cut", "-c", "1-3", "f.txt")
+    assert rc == 0
+    assert out == "hel\nwor\n"
+
+
+def test_cut_c_positions(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"abcdef\n")
+    rc, out, _ = invoke("cut", "-c", "1,3,5", "f.txt")
+    assert rc == 0
+    assert out == "ace\n"
+
+
+def test_cut_s_suppress(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"a:b\nno-delim\nx:y\n")
+    rc, out, _ = invoke("cut", "-d", ":", "-f", "2", "-s", "f.txt")
+    assert rc == 0
+    assert out == "b\ny\n"
+
+
+def test_cut_order_independent(invoke, workspace):
+    """Position list order doesn't change output order (GNU semantics)."""
+    (workspace / "f.txt").write_bytes(b"a\tb\tc\n")
+    rc, out, _ = invoke("cut", "-f", "3,1", "f.txt")
+    assert rc == 0
+    assert out == "a\tc\n"
+
+
 # aliases
 
 def test_alias_type_is_cat(invoke, workspace):
