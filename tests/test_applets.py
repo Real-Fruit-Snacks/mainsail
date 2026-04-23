@@ -1423,6 +1423,68 @@ def test_date_utc_flag(invoke):
     assert "UTC" in out or "utc" in out.lower()
 
 
+# printf
+
+def test_printf_s(invoke):
+    rc, out, _ = invoke("printf", "%s\\n", "hello")
+    assert rc == 0
+    assert out == "hello\n"
+
+
+def test_printf_d(invoke):
+    rc, out, _ = invoke("printf", "num=%d\\n", "42")
+    assert rc == 0
+    assert out == "num=42\n"
+
+
+def test_printf_escapes(invoke):
+    rc, out, _ = invoke("printf", "a\\tb\\nc")
+    assert rc == 0
+    assert out == "a\tb\nc"
+
+
+def test_printf_multiple_args_cycle(invoke):
+    rc, out, _ = invoke("printf", "%s=%s\\n", "a", "1", "b", "2")
+    assert rc == 0
+    assert out == "a=1\nb=2\n"
+
+
+def test_printf_width(invoke):
+    rc, out, _ = invoke("printf", "%5d\\n", "7")
+    assert rc == 0
+    assert out == "    7\n"
+
+
+def test_printf_hex(invoke):
+    rc, out, _ = invoke("printf", "%x\\n", "255")
+    assert rc == 0
+    assert out == "ff\n"
+
+
+def test_printf_zero_pad(invoke):
+    rc, out, _ = invoke("printf", "%03d\\n", "5")
+    assert rc == 0
+    assert out == "005\n"
+
+
+def test_printf_percent_literal(invoke):
+    rc, out, _ = invoke("printf", "100%%\\n")
+    assert rc == 0
+    assert out == "100%\n"
+
+
+def test_printf_too_few_args_pads_zero(invoke):
+    rc, out, _ = invoke("printf", "%s-%d\\n", "only")
+    assert rc == 0
+    assert out == "only-0\n"
+
+
+def test_printf_float(invoke):
+    rc, out, _ = invoke("printf", "%.2f\\n", "3.14159")
+    assert rc == 0
+    assert out == "3.14\n"
+
+
 def test_yes_subprocess(workspace):
     """yes runs forever; drive it via subprocess and kill after we get output."""
     import subprocess
