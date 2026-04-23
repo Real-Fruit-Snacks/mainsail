@@ -1,0 +1,44 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pybox"
+version = "0.1.0"
+description = "A cross-platform BusyBox-like multi-call binary written in Python."
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{ name = "Matt" }]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: System :: Shells",
+    "Topic :: Utilities",
+]
+dependencies = []
+
+[project.scripts]
+pybox = "pybox.cli:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+build = ["nuitka>=2.0"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["pybox"]
+
+[tool.hatch.build.targets.sdist]
+include = ["pybox", "pyproject.toml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
