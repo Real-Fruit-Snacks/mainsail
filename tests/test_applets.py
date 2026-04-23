@@ -181,6 +181,80 @@ def test_grep_no_match(invoke, workspace):
     assert rc == 1
 
 
+def test_grep_context_C(invoke, workspace):
+    (workspace / "f.txt").write_text("a\nb\nMATCH\nc\nd\n")
+    rc, out, _ = invoke("grep", "-C", "1", "MATCH", "f.txt")
+    assert rc == 0
+    assert "MATCH" in out
+    assert "b\n" in out
+    assert "c\n" in out
+    # outside context
+    assert "a\n" not in out
+    assert "d\n" not in out
+
+
+def test_grep_context_A(invoke, workspace):
+    (workspace / "f.txt").write_text("one\nMATCH\nthree\nfour\nfive\n")
+    rc, out, _ = invoke("grep", "-A", "2", "MATCH", "f.txt")
+    assert rc == 0
+    assert "MATCH" in out
+    assert "three" in out
+    assert "four" in out
+    assert "five" not in out
+    assert "one" not in out
+
+
+def test_grep_context_B(invoke, workspace):
+    (workspace / "f.txt").write_text("one\ntwo\nMATCH\nafter\n")
+    rc, out, _ = invoke("grep", "-B", "1", "MATCH", "f.txt")
+    assert rc == 0
+    assert "two" in out
+    assert "MATCH" in out
+    assert "one" not in out
+    assert "after" not in out
+
+
+def test_grep_only_matching(invoke, workspace):
+    (workspace / "f.txt").write_text("foo and bar\nbar and foo\n")
+    rc, out, _ = invoke("grep", "-o", "foo", "f.txt")
+    assert rc == 0
+    assert out.count("foo") == 2
+    assert "bar" not in out
+
+
+def test_grep_word_boundary(invoke, workspace):
+    (workspace / "f.txt").write_text("apple\npineapple\nappleseed\n")
+    rc, out, _ = invoke("grep", "-w", "apple", "f.txt")
+    assert rc == 0
+    lines = out.strip().split("\n")
+    assert lines == ["apple"]
+
+
+def test_grep_quiet_match(invoke, workspace):
+    (workspace / "f.txt").write_text("hello\nworld\n")
+    rc, out, _ = invoke("grep", "-q", "hello", "f.txt")
+    assert rc == 0
+    assert out == ""
+
+
+def test_grep_quiet_no_match(invoke, workspace):
+    (workspace / "f.txt").write_text("hello\n")
+    rc, out, _ = invoke("grep", "-q", "zzz", "f.txt")
+    assert rc == 1
+    assert out == ""
+
+
+def test_grep_context_separator(invoke, workspace):
+    (workspace / "f.txt").write_text("\n".join([
+        "skip1", "skip2", "MATCH1", "skip3", "skip4", "skip5",
+        "skip6", "MATCH2", "skip7",
+    ]) + "\n")
+    rc, out, _ = invoke("grep", "-A", "1", "MATCH", "f.txt")
+    assert rc == 0
+    # Two separate groups, so a "--" separator should appear
+    assert "--" in out
+
+
 # head / tail / wc
 
 def test_head(invoke, workspace):

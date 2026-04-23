@@ -3,7 +3,6 @@ from __future__ import annotations
 import os
 import re
 import sys
-from pathlib import Path
 
 from pybox.common import err, err_path
 
@@ -12,16 +11,15 @@ ALIASES: list[str] = []
 HELP = "print lines matching a pattern"
 
 
-def _walk_files(paths: list[str]) -> list[str]:
-    out: list[str] = []
-    for p in paths:
-        if os.path.isdir(p):
-            for root, _, files in os.walk(p):
-                for f in sorted(files):
-                    out.append(os.path.join(root, f))
-        else:
-            out.append(p)
-    return out
+def _parse_count(flag: str, value: str) -> int | None:
+    try:
+        n = int(value)
+        if n < 0:
+            raise ValueError
+        return n
+    except ValueError:
+        err(NAME, f"{flag}: invalid number '{value}'")
+        return None
 
 
 def main(argv: list[str]) -> int:
@@ -33,6 +31,11 @@ def main(argv: list[str]) -> int:
     fixed_string = False
     list_files = False
     count_only = False
+    word_match = False
+    only_matching = False
+    quiet = False
+    before_n = 0
+    after_n = 0
 
     i = 0
     while i < len(args):
@@ -40,8 +43,41 @@ def main(argv: list[str]) -> int:
         if a == "--":
             args = args[:i] + args[i + 1:]
             break
-        if not a.startswith("-") or len(a) < 2:
+
+        # Value-taking flags: -A, -B, -C (with optional attached value)
+        if a in ("-A", "-B", "-C"):
+            if i + 1 >= len(args):
+                err(NAME, f"{a}: missing argument")
+                return 2
+            n = _parse_count(a, args[i + 1])
+            if n is None:
+                return 2
+            if a == "-A":
+                after_n = max(after_n, n)
+            elif a == "-B":
+                before_n = max(before_n, n)
+            else:
+                before_n = max(before_n, n)
+                after_n = max(after_n, n)
+            i += 2
+            continue
+        if len(a) > 2 and a[:2] in ("-A", "-B", "-C") and a[2:].lstrip("-").isdigit():
+            n = _parse_count(a[:2], a[2:])
+            if n is None:
+                return 2
+            if a[:2] == "-A":
+                after_n = max(after_n, n)
+            elif a[:2] == "-B":
+                before_n = max(before_n, n)
+            else:
+                before_n = max(before_n, n)
+                after_n = max(after_n, n)
+            i += 1
+            continue
+
+        if not a.startswith("-") or len(a) < 2 or a == "-":
             break
+
         for ch in a[1:]:
             if ch == "i":
                 ignore_case = True
@@ -57,6 +93,12 @@ def main(argv: list[str]) -> int:
                 list_files = True
             elif ch == "c":
                 count_only = True
+            elif ch == "w":
+                word_match = True
+            elif ch == "o":
+                only_matching = True
+            elif ch == "q":
+                quiet = True
             elif ch == "E":
                 pass  # Python re is already extended
             else:
@@ -74,6 +116,8 @@ def main(argv: list[str]) -> int:
 
     if fixed_string:
         pattern = re.escape(pattern)
+    if word_match:
+        pattern = rf"\b(?:{pattern})\b"
     flags = re.IGNORECASE if ignore_case else 0
     try:
         rx = re.compile(pattern, flags)
@@ -83,6 +127,7 @@ def main(argv: list[str]) -> int:
 
     if not targets:
         targets = ["-"]
+
     if recursive:
         expanded: list[str] = []
         for t in targets:
@@ -96,50 +141,87 @@ def main(argv: list[str]) -> int:
 
     show_filename = len(targets) > 1 or recursive
     matched_any = False
-    rc = 1
+
+    def write_line(path: str, lineno: int, text: str, match_sep: bool) -> None:
+        parts: list[str] = []
+        if show_filename:
+            parts.append(path)
+        if show_line_num:
+            parts.append(str(lineno))
+        parts.append(text)
+        sep = ":" if match_sep else "-"
+        sys.stdout.write(sep.join(parts) + "\n")
 
     for t in targets:
         try:
             fh = sys.stdin if t == "-" else open(t, "r", encoding="utf-8", errors="replace")
         except OSError as e:
             err_path(NAME, t, e)
-            rc = 2
             continue
 
         close = t != "-"
-        match_count = 0
         try:
-            for lineno, line in enumerate(fh, 1):
-                stripped = line.rstrip("\n")
-                hit = bool(rx.search(stripped))
-                if invert:
-                    hit = not hit
-                if hit:
-                    match_count += 1
-                    matched_any = True
-                    if list_files:
-                        break
-                    if count_only:
-                        continue
-                    out: list[str] = []
-                    if show_filename:
-                        out.append(t)
-                    if show_line_num:
-                        out.append(str(lineno))
-                    out.append(stripped)
-                    sys.stdout.write(":".join(out) + "\n")
+            lines = [(n, ln.rstrip("\n")) for n, ln in enumerate(fh, 1)]
         finally:
             if close:
                 fh.close()
 
-        if list_files and match_count > 0:
-            sys.stdout.write(t + "\n")
-        if count_only:
-            if show_filename:
-                sys.stdout.write(f"{t}:{match_count}\n")
-            else:
-                sys.stdout.write(f"{match_count}\n")
+        match_map: dict[int, list[re.Match[str]]] = {}
+        for n, text in lines:
+            found = list(rx.finditer(text))
+            is_match = bool(found) != invert
+            if is_match:
+                match_map[n] = found if not invert else []
 
-    if matched_any:
-        rc = 0
-    return rc
+        if quiet:
+            if match_map:
+                return 0
+            continue
+
+        if list_files:
+            if match_map:
+                matched_any = True
+                sys.stdout.write(t + "\n")
+            continue
+
+        if count_only:
+            cnt = len(match_map)
+            if show_filename:
+                sys.stdout.write(f"{t}:{cnt}\n")
+            else:
+                sys.stdout.write(f"{cnt}\n")
+            if cnt:
+                matched_any = True
+            continue
+
+        if only_matching:
+            for n, _text in lines:
+                if n in match_map:
+                    for m in match_map[n]:
+                        write_line(t, n, m.group(0), True)
+            if match_map:
+                matched_any = True
+            continue
+
+        if not match_map:
+            continue
+        matched_any = True
+
+        # Expand to context lines
+        to_print: dict[int, bool] = {n: True for n in match_map}
+        if before_n or after_n:
+            match_set = set(match_map.keys())
+            total = len(lines)
+            for m in match_set:
+                for k in range(max(1, m - before_n), min(total, m + after_n) + 1):
+                    to_print.setdefault(k, False)
+
+        prev_printed = None
+        for n, text in lines:
+            if n in to_print:
+                if prev_printed is not None and n - prev_printed > 1:
+                    sys.stdout.write("--\n")
+                write_line(t, n, text, to_print[n])
+                prev_printed = n
+
+    return 0 if matched_any else 1
