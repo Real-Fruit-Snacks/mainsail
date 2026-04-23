@@ -769,6 +769,60 @@ def test_cut_order_independent(invoke, workspace):
     assert out == "a\tc\n"
 
 
+# uniq
+
+def test_uniq_basic(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"a\na\nb\nc\nc\nc\n")
+    rc, out, _ = invoke("uniq", "f.txt")
+    assert rc == 0
+    assert out == "a\nb\nc\n"
+
+
+def test_uniq_count(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"a\na\nb\nc\nc\nc\n")
+    rc, out, _ = invoke("uniq", "-c", "f.txt")
+    assert rc == 0
+    lines = [ln.strip() for ln in out.splitlines()]
+    assert lines == ["2 a", "1 b", "3 c"]
+
+
+def test_uniq_d_only_dupes(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"a\na\nb\nc\nc\n")
+    rc, out, _ = invoke("uniq", "-d", "f.txt")
+    assert rc == 0
+    assert out == "a\nc\n"
+
+
+def test_uniq_u_only_uniques(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"a\na\nb\nc\nc\n")
+    rc, out, _ = invoke("uniq", "-u", "f.txt")
+    assert rc == 0
+    assert out == "b\n"
+
+
+def test_uniq_i_ignore_case(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"apple\nAPPLE\nBanana\n")
+    rc, out, _ = invoke("uniq", "-i", "f.txt")
+    assert rc == 0
+    assert out == "apple\nBanana\n"
+
+
+def test_uniq_non_adjacent_kept(invoke, workspace):
+    """uniq only dedupes ADJACENT duplicates; non-adjacent stay."""
+    (workspace / "f.txt").write_bytes(b"a\nb\na\nb\n")
+    rc, out, _ = invoke("uniq", "f.txt")
+    assert rc == 0
+    assert out == "a\nb\na\nb\n"
+
+
+def test_uniq_skip_fields(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"1 apple\n2 apple\n3 banana\n")
+    rc, out, _ = invoke("uniq", "-f", "1", "f.txt")
+    assert rc == 0
+    # First two lines collapse because after skipping field 1 both read "apple"
+    assert out == "1 apple\n3 banana\n"
+
+
 # aliases
 
 def test_alias_type_is_cat(invoke, workspace):
