@@ -1330,6 +1330,51 @@ def test_seq_format(invoke):
     assert out.strip().split("\n") == ["001", "002", "003"]
 
 
+# uname / hostname / whoami
+
+def test_uname_default(invoke):
+    import platform
+    rc, out, _ = invoke("uname")
+    assert rc == 0
+    assert out.strip() == (platform.uname().system or "unknown")
+
+
+def test_uname_a_all(invoke):
+    rc, out, _ = invoke("uname", "-a")
+    assert rc == 0
+    parts = out.strip().split()
+    # -a yields 8 fields: system, node, release, version, machine, processor, platform, os
+    assert len(parts) >= 3
+
+
+def test_uname_s_and_m(invoke):
+    rc, out, _ = invoke("uname", "-sm")
+    assert rc == 0
+    assert len(out.strip().split()) == 2
+
+
+def test_hostname_matches_socket(invoke):
+    import socket as _s
+    rc, out, _ = invoke("hostname")
+    assert rc == 0
+    assert out.strip() == _s.gethostname()
+
+
+def test_hostname_short(invoke):
+    import socket as _s
+    rc, out, _ = invoke("hostname", "-s")
+    assert rc == 0
+    assert "." not in out.strip()
+    assert out.strip() == _s.gethostname().split(".")[0]
+
+
+def test_whoami_matches_getpass(invoke):
+    import getpass as _g
+    rc, out, _ = invoke("whoami")
+    assert rc == 0
+    assert out.strip() == _g.getuser()
+
+
 def test_yes_subprocess(workspace):
     """yes runs forever; drive it via subprocess and kill after we get output."""
     import subprocess
