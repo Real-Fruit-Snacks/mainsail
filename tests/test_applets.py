@@ -1124,6 +1124,59 @@ def test_ln_into_directory(invoke, workspace):
     assert (d / "src.txt").read_bytes() == b"content"
 
 
+# stat
+
+def test_stat_default_shows_name_and_size(invoke, workspace):
+    f = workspace / "s.txt"
+    f.write_bytes(b"12345")
+    rc, out, _ = invoke("stat", str(f))
+    assert rc == 0
+    assert "s.txt" in out
+    assert "5" in out  # size
+
+
+def test_stat_format_size(invoke, workspace):
+    f = workspace / "s.txt"
+    f.write_bytes(b"abcdef")
+    rc, out, _ = invoke("stat", "-c", "%s", str(f))
+    assert rc == 0
+    assert out.strip() == "6"
+
+
+def test_stat_format_name(invoke, workspace):
+    f = workspace / "namefile.txt"
+    f.write_bytes(b"")
+    rc, out, _ = invoke("stat", "-c", "%n", str(f))
+    assert rc == 0
+    assert out.strip().endswith("namefile.txt")
+
+
+def test_stat_format_type(invoke, workspace):
+    f = workspace / "s.txt"
+    f.write_bytes(b"")
+    d = workspace / "sdir"
+    d.mkdir()
+    rc, out, _ = invoke("stat", "-c", "%F", str(f), str(d))
+    assert rc == 0
+    lines = out.strip().splitlines()
+    assert lines[0] == "regular file"
+    assert lines[1] == "directory"
+
+
+def test_stat_format_combined(invoke, workspace):
+    f = workspace / "combo.txt"
+    f.write_bytes(b"xy")
+    rc, out, _ = invoke("stat", "-c", "%n=%s", str(f))
+    assert rc == 0
+    assert out.strip().endswith("combo.txt=2")
+
+
+def test_stat_missing(invoke, workspace):
+    rc, _, err_text = invoke("stat", str(workspace / "does_not_exist"))
+    assert rc == 1
+    assert "does_not_exist" in err_text
+
+
 # aliases
 
 def test_alias_type_is_cat(invoke, workspace):
