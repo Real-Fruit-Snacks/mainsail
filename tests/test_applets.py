@@ -129,6 +129,48 @@ def test_touch_creates_file(invoke, workspace):
     assert (workspace / "new.txt").is_file()
 
 
+def test_touch_r_reference(invoke, workspace):
+    ref = workspace / "ref.txt"
+    ref.write_bytes(b"")
+    ref_mtime = 1600000000.0
+    os.utime(ref, (ref_mtime, ref_mtime))
+    target = workspace / "target.txt"
+    target.write_bytes(b"")
+    rc, _, _ = invoke("touch", "-r", str(ref), str(target))
+    assert rc == 0
+    assert abs(target.stat().st_mtime - ref_mtime) < 1
+
+
+def test_touch_d_iso_date(invoke, workspace):
+    from datetime import datetime as _dt
+    target = workspace / "t.txt"
+    target.write_bytes(b"")
+    rc, _, _ = invoke("touch", "-d", "2020-01-15", str(target))
+    assert rc == 0
+    dt = _dt.fromtimestamp(target.stat().st_mtime)
+    assert (dt.year, dt.month, dt.day) == (2020, 1, 15)
+
+
+def test_touch_d_iso_datetime(invoke, workspace):
+    from datetime import datetime as _dt
+    target = workspace / "t.txt"
+    target.write_bytes(b"")
+    rc, _, _ = invoke("touch", "-d", "2020-01-15 14:30:00", str(target))
+    assert rc == 0
+    dt = _dt.fromtimestamp(target.stat().st_mtime)
+    assert (dt.year, dt.month, dt.day, dt.hour, dt.minute) == (2020, 1, 15, 14, 30)
+
+
+def test_touch_t_posix(invoke, workspace):
+    from datetime import datetime as _dt
+    target = workspace / "t.txt"
+    target.write_bytes(b"")
+    rc, _, _ = invoke("touch", "-t", "202001150930", str(target))
+    assert rc == 0
+    dt = _dt.fromtimestamp(target.stat().st_mtime)
+    assert (dt.year, dt.month, dt.day, dt.hour, dt.minute) == (2020, 1, 15, 9, 30)
+
+
 # cat / cp / mv / rm
 
 def test_cat(invoke, workspace):
