@@ -72,6 +72,8 @@ ls -la   # runs the ls applet
 | `false` |                    | do nothing, unsuccessfully (exits 1) |
 | `find`  |                    | search for files in a directory hierarchy |
 | `grep`  |                    | print lines matching a pattern |
+| `gunzip` |                   | decompress .gz files |
+| `gzip`  |                    | compress / decompress files (.gz) |
 | `head`  |                    | output the first part of files |
 | `hostname` |                | show the system's hostname |
 | `ln`    |                    | create hard or symbolic links |
@@ -88,17 +90,20 @@ ls -la   # runs the ls applet
 | `sort`  |                    | sort lines of text files |
 | `stat`  |                    | display file or file system status |
 | `tail`  |                    | output the last part of files (supports `-f`) |
+| `tar`   |                    | create/extract/list tar archives (gz/bz2/xz) |
 | `tee`   |                    | read stdin and write to stdout and files |
 | `touch` |                    | change file timestamps (create if missing) |
 | `tr`    |                    | translate, delete, or squeeze characters |
 | `true`  |                    | do nothing, successfully (exits 0) |
 | `uname` |                    | print system information |
 | `uniq`  |                    | collapse repeated adjacent lines |
+| `unzip` |                    | extract files from a .zip archive |
 | `wc`    |                    | print newline, word, and byte counts for each file |
 | `which` | `where`            | locate a command on PATH |
 | `whoami` |                   | print effective user name |
 | `xargs` |                    | build and execute command lines from standard input |
 | `yes`   |                    | output a string repeatedly until killed |
+| `zip`   |                    | package and compress files into a .zip archive |
 
 Each applet implements the common POSIX flags — enough for day-to-day scripting, not full GNU coreutils parity.
 
