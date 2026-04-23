@@ -72,6 +72,57 @@ def test_mkdir_p_nested(invoke, workspace):
     assert (workspace / "a" / "b" / "c").is_dir()
 
 
+def test_ls_F_classify(invoke, workspace):
+    (workspace / "subdir").mkdir()
+    (workspace / "file.txt").write_bytes(b"")
+    rc, out, _ = invoke("ls", "-F", ".")
+    assert rc == 0
+    lines = [ln for ln in out.splitlines() if ln]
+    assert "subdir/" in lines
+    assert "file.txt" in lines
+
+
+def test_ls_S_by_size(invoke, workspace):
+    (workspace / "small").write_bytes(b"x")
+    (workspace / "big").write_bytes(b"x" * 100)
+    (workspace / "medium").write_bytes(b"x" * 10)
+    rc, out, _ = invoke("ls", "-S", ".")
+    assert rc == 0
+    lines = [ln for ln in out.splitlines() if ln]
+    assert lines.index("big") < lines.index("medium") < lines.index("small")
+
+
+def test_ls_t_by_time(invoke, workspace):
+    import time as t
+    (workspace / "old").write_bytes(b"")
+    t.sleep(0.05)
+    (workspace / "new").write_bytes(b"")
+    rc, out, _ = invoke("ls", "-t", ".")
+    assert rc == 0
+    lines = [ln for ln in out.splitlines() if ln]
+    assert lines.index("new") < lines.index("old")
+
+
+def test_ls_r_reverse(invoke, workspace):
+    (workspace / "a").write_bytes(b"")
+    (workspace / "b").write_bytes(b"")
+    (workspace / "c").write_bytes(b"")
+    rc, out, _ = invoke("ls", "-r", ".")
+    assert rc == 0
+    lines = [ln for ln in out.splitlines() if ln]
+    assert lines == ["c", "b", "a"]
+
+
+def test_ls_a_shows_dots(invoke, workspace):
+    (workspace / "visible").write_bytes(b"")
+    rc, out, _ = invoke("ls", "-a", ".")
+    assert rc == 0
+    names = [ln for ln in out.splitlines() if ln]
+    assert "." in names
+    assert ".." in names
+    assert "visible" in names
+
+
 def test_touch_creates_file(invoke, workspace):
     rc, _, _ = invoke("touch", "new.txt")
     assert rc == 0
