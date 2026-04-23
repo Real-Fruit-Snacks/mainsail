@@ -1269,6 +1269,67 @@ def test_false_exit_1(invoke):
     assert out == ""
 
 
+def test_sleep_short(invoke):
+    import time as t
+    start = t.monotonic()
+    rc, _, _ = invoke("sleep", "0.1")
+    assert rc == 0
+    elapsed = t.monotonic() - start
+    assert 0.08 <= elapsed < 1.0
+
+
+def test_sleep_invalid(invoke):
+    rc, _, _ = invoke("sleep", "not-a-number")
+    assert rc == 2
+
+
+def test_sleep_zero(invoke):
+    rc, _, _ = invoke("sleep", "0")
+    assert rc == 0
+
+
+def test_seq_single_arg(invoke):
+    rc, out, _ = invoke("seq", "5")
+    assert rc == 0
+    assert out.strip().split("\n") == ["1", "2", "3", "4", "5"]
+
+
+def test_seq_two_args(invoke):
+    rc, out, _ = invoke("seq", "3", "7")
+    assert rc == 0
+    assert out.strip().split("\n") == ["3", "4", "5", "6", "7"]
+
+
+def test_seq_three_args_step(invoke):
+    rc, out, _ = invoke("seq", "1", "2", "9")
+    assert rc == 0
+    assert out.strip().split("\n") == ["1", "3", "5", "7", "9"]
+
+
+def test_seq_descending(invoke):
+    rc, out, _ = invoke("seq", "5", "-1", "1")
+    assert rc == 0
+    assert out.strip().split("\n") == ["5", "4", "3", "2", "1"]
+
+
+def test_seq_custom_separator(invoke):
+    rc, out, _ = invoke("seq", "-s", ",", "3")
+    assert rc == 0
+    assert out.strip() == "1,2,3"
+
+
+def test_seq_equal_width(invoke):
+    rc, out, _ = invoke("seq", "-w", "8", "12")
+    assert rc == 0
+    assert out.strip().split("\n") == ["08", "09", "10", "11", "12"]
+
+
+def test_seq_format(invoke):
+    rc, out, _ = invoke("seq", "-f", "%03d", "1", "3")
+    assert rc == 0
+    assert out.strip().split("\n") == ["001", "002", "003"]
+
+
 def test_yes_subprocess(workspace):
     """yes runs forever; drive it via subprocess and kill after we get output."""
     import subprocess
