@@ -1005,6 +1005,70 @@ def test_realpath_relative_to(invoke, workspace):
     assert result == "sub/x.txt"
 
 
+# chmod
+
+def test_chmod_octal_makes_writable(invoke, workspace):
+    f = workspace / "file.txt"
+    f.write_bytes(b"")
+    os.chmod(f, 0o444)  # make read-only first
+    try:
+        rc, _, _ = invoke("chmod", "644", str(f))
+        assert rc == 0
+        assert os.access(f, os.W_OK)
+    finally:
+        os.chmod(f, 0o644)  # ensure cleanup can delete
+
+
+def test_chmod_symbolic_add_write(invoke, workspace):
+    f = workspace / "file.txt"
+    f.write_bytes(b"")
+    os.chmod(f, 0o444)
+    try:
+        rc, _, _ = invoke("chmod", "u+w", str(f))
+        assert rc == 0
+        assert os.access(f, os.W_OK)
+    finally:
+        os.chmod(f, 0o644)
+
+
+def test_chmod_symbolic_remove_write(invoke, workspace):
+    f = workspace / "file.txt"
+    f.write_bytes(b"")
+    os.chmod(f, 0o644)
+    try:
+        rc, _, _ = invoke("chmod", "u-w", str(f))
+        assert rc == 0
+        assert not os.access(f, os.W_OK)
+    finally:
+        os.chmod(f, 0o644)
+
+
+def test_chmod_recursive(invoke, workspace):
+    d = workspace / "tree"
+    d.mkdir()
+    inner = d / "inner.txt"
+    inner.write_bytes(b"")
+    os.chmod(inner, 0o444)
+    try:
+        rc, _, _ = invoke("chmod", "-R", "u+w", str(d))
+        assert rc == 0
+        assert os.access(inner, os.W_OK)
+    finally:
+        os.chmod(inner, 0o644)
+
+
+def test_chmod_verbose(invoke, workspace):
+    f = workspace / "file.txt"
+    f.write_bytes(b"")
+    os.chmod(f, 0o444)
+    try:
+        rc, out, _ = invoke("chmod", "-v", "644", str(f))
+        assert rc == 0
+        assert "changed" in out or "retained" in out
+    finally:
+        os.chmod(f, 0o644)
+
+
 # aliases
 
 def test_alias_type_is_cat(invoke, workspace):
