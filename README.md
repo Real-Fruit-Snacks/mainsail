@@ -58,20 +58,28 @@ ls -la   # runs the ls applet
 
 | Applet | Aliases | Description |
 |--------|---------|-------------|
+| `basename` |                | strip directory components from a filename |
 | `cat`   | `type`             | concatenate files and print on the standard output |
+| `chmod` |                    | change file mode bits (octal or symbolic) |
 | `cp`    | `copy`             | copy files and directories |
 | `cut`   |                    | remove sections from each line of files |
+| `df`    |                    | report filesystem disk space usage |
+| `dirname` |                  | strip last component from a path |
+| `du`    |                    | estimate file space usage |
 | `echo`  |                    | display a line of text |
 | `env`   |                    | run a program in a modified environment, or print the environment |
 | `find`  |                    | search for files in a directory hierarchy |
 | `grep`  |                    | print lines matching a pattern |
 | `head`  |                    | output the first part of files |
+| `ln`    |                    | create hard or symbolic links |
 | `ls`    | `dir`              | list directory contents |
 | `mkdir` | `md`               | make directories |
 | `mv`    | `move`, `ren`, `rename` | move (rename) files |
 | `pwd`   |                    | print name of current/working directory |
+| `realpath` |                | resolve a path to its canonical absolute form |
 | `rm`    | `del`, `erase`     | remove files or directories |
 | `sort`  |                    | sort lines of text files |
+| `stat`  |                    | display file or file system status |
 | `tail`  |                    | output the last part of files (supports `-f`) |
 | `tee`   |                    | read stdin and write to stdout and files |
 | `touch` |                    | change file timestamps (create if missing) |
