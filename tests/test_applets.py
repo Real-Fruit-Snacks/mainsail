@@ -860,6 +860,75 @@ def test_tee_no_files(invoke, workspace, monkeypatch):
     assert out == "just passthrough\n"
 
 
+# xargs
+
+def test_xargs_basic(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"arg1 arg2 arg3\n")
+    marker = workspace / "m.txt"
+    script = (
+        f"import sys; open(r'{marker}', 'w').write('|'.join(sys.argv[1:]))"
+    )
+    rc, _, _ = invoke("xargs", sys.executable, "-c", script)
+    assert rc == 0
+    assert marker.read_text() == "arg1|arg2|arg3"
+
+
+def test_xargs_n_batch(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"a b c d\n")
+    marker = workspace / "m.txt"
+    script = (
+        f"import sys; open(r'{marker}', 'a').write('[' + '|'.join(sys.argv[1:]) + ']')"
+    )
+    rc, _, _ = invoke("xargs", "-n", "2", sys.executable, "-c", script)
+    assert rc == 0
+    assert marker.read_text() == "[a|b][c|d]"
+
+
+def test_xargs_I_replace(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"x\ny\n")
+    marker = workspace / "m.txt"
+    script = (
+        f"import sys; open(r'{marker}', 'a').write(sys.argv[1] + ';')"
+    )
+    rc, _, _ = invoke("xargs", "-I", "{}", sys.executable, "-c", script, "{}")
+    assert rc == 0
+    assert marker.read_text() == "x;y;"
+
+
+def test_xargs_0_null_sep(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"a b\0c d\0")
+    marker = workspace / "m.txt"
+    script = (
+        f"import sys; open(r'{marker}', 'w').write('|'.join(sys.argv[1:]))"
+    )
+    rc, _, _ = invoke("xargs", "-0", sys.executable, "-c", script)
+    assert rc == 0
+    # Two tokens: "a b" and "c d", both passed in single invocation
+    assert marker.read_text() == "a b|c d"
+
+
+def test_xargs_r_no_run_empty(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"")
+    marker = workspace / "m.txt"
+    script = f"import sys; open(r'{marker}', 'w').write('ran')"
+    rc, _, _ = invoke("xargs", "-r", sys.executable, "-c", script)
+    assert rc == 0
+    assert not marker.exists()
+
+
+def test_xargs_L_lines(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"a b\nc d\ne f\n")
+    marker = workspace / "m.txt"
+    script = (
+        f"import sys; open(r'{marker}', 'a').write('[' + ','.join(sys.argv[1:]) + ']')"
+    )
+    rc, _, _ = invoke("xargs", "-L", "1", sys.executable, "-c", script)
+    assert rc == 0
+    # Each input line (already joined/split differently) becomes one call
+    content = marker.read_text()
+    assert content.count("[") == 3
+
+
 # aliases
 
 def test_alias_type_is_cat(invoke, workspace):
