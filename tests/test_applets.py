@@ -1485,6 +1485,141 @@ def test_printf_float(invoke):
     assert out == "3.14\n"
 
 
+# sed
+
+def test_sed_substitute(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"hello world\n")
+    rc, out, _ = invoke("sed", "s/hello/hi/", "f.txt")
+    assert rc == 0
+    assert out == "hi world\n"
+
+
+def test_sed_substitute_global(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"a b a c a\n")
+    rc, out, _ = invoke("sed", "s/a/X/g", "f.txt")
+    assert rc == 0
+    assert out == "X b X c X\n"
+
+
+def test_sed_substitute_case_insensitive(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"Hello hello HELLO\n")
+    rc, out, _ = invoke("sed", "s/hello/hi/gi", "f.txt")
+    assert rc == 0
+    assert out == "hi hi hi\n"
+
+
+def test_sed_delete_line_number(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"one\ntwo\nthree\n")
+    rc, out, _ = invoke("sed", "2d", "f.txt")
+    assert rc == 0
+    assert out == "one\nthree\n"
+
+
+def test_sed_n_suppresses_default(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"a\nb\nc\n")
+    rc, out, _ = invoke("sed", "-n", "2p", "f.txt")
+    assert rc == 0
+    assert out == "b\n"
+
+
+def test_sed_regex_address_delete(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"apple\nbanana\ncherry\n")
+    rc, out, _ = invoke("sed", "/banana/d", "f.txt")
+    assert rc == 0
+    assert out == "apple\ncherry\n"
+
+
+def test_sed_range_delete(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"1\n2\n3\n4\n5\n")
+    rc, out, _ = invoke("sed", "2,4d", "f.txt")
+    assert rc == 0
+    assert out == "1\n5\n"
+
+
+def test_sed_dollar_last_line(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"one\ntwo\nthree\n")
+    rc, out, _ = invoke("sed", "$d", "f.txt")
+    assert rc == 0
+    assert out == "one\ntwo\n"
+
+
+def test_sed_multiple_e(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"hello\n")
+    rc, out, _ = invoke("sed", "-e", "s/h/H/", "-e", "s/o/O/", "f.txt")
+    assert rc == 0
+    assert out == "HellO\n"
+
+
+def test_sed_negation(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"a\nb\nc\n")
+    rc, out, _ = invoke("sed", "-n", "2!p", "f.txt")
+    assert rc == 0
+    assert out == "a\nc\n"
+
+
+def test_sed_backreference_bre(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"abc123\n")
+    rc, out, _ = invoke("sed", r"s/\([a-z]*\)\([0-9]*\)/\2\1/", "f.txt")
+    assert rc == 0
+    assert out == "123abc\n"
+
+
+def test_sed_ampersand_in_replacement(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"hello\n")
+    rc, out, _ = invoke("sed", "s/lo/[&]/", "f.txt")
+    assert rc == 0
+    assert out == "hel[lo]\n"
+
+
+def test_sed_extended_regex(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"abc123\n")
+    rc, out, _ = invoke("sed", "-E", "s/([a-z]*)([0-9]*)/\\2\\1/", "f.txt")
+    assert rc == 0
+    assert out == "123abc\n"
+
+
+def test_sed_y_translate(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"hello\n")
+    rc, out, _ = invoke("sed", "y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/", "f.txt")
+    assert rc == 0
+    assert out == "HELLO\n"
+
+
+def test_sed_quit(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"one\ntwo\nthree\n")
+    rc, out, _ = invoke("sed", "2q", "f.txt")
+    assert rc == 0
+    assert out == "one\ntwo\n"
+
+
+def test_sed_line_number_eq(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"a\nb\nc\n")
+    rc, out, _ = invoke("sed", "-n", "=", "f.txt")
+    assert rc == 0
+    assert out.strip().split("\n") == ["1", "2", "3"]
+
+
+def test_sed_in_place(invoke, workspace):
+    f = workspace / "f.txt"
+    f.write_bytes(b"hello world\n")
+    rc, _, _ = invoke("sed", "-i", "s/hello/goodbye/", str(f))
+    assert rc == 0
+    assert f.read_bytes() == b"goodbye world\n"
+
+
+def test_sed_alternate_delimiter(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"/a/b/c\n")
+    rc, out, _ = invoke("sed", "s|/a|/X|", "f.txt")
+    assert rc == 0
+    assert out == "/X/b/c\n"
+
+
+def test_sed_bad_regex(invoke):
+    rc, _, err_text = invoke("sed", "s/[/y/", "nofile")
+    assert rc == 2
+    assert "sed" in err_text
+
+
 def test_yes_subprocess(workspace):
     """yes runs forever; drive it via subprocess and kill after we get output."""
     import subprocess
