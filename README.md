@@ -60,6 +60,7 @@ ls -la   # runs the ls applet
 |--------|---------|-------------|
 | `cat`   | `type`             | concatenate files and print on the standard output |
 | `cp`    | `copy`             | copy files and directories |
+| `cut`   |                    | remove sections from each line of files |
 | `echo`  |                    | display a line of text |
 | `env`   |                    | run a program in a modified environment, or print the environment |
 | `find`  |                    | search for files in a directory hierarchy |
@@ -71,10 +72,14 @@ ls -la   # runs the ls applet
 | `pwd`   |                    | print name of current/working directory |
 | `rm`    | `del`, `erase`     | remove files or directories |
 | `sort`  |                    | sort lines of text files |
-| `tail`  |                    | output the last part of files |
+| `tail`  |                    | output the last part of files (supports `-f`) |
+| `tee`   |                    | read stdin and write to stdout and files |
 | `touch` |                    | change file timestamps (create if missing) |
+| `tr`    |                    | translate, delete, or squeeze characters |
+| `uniq`  |                    | collapse repeated adjacent lines |
 | `wc`    |                    | print newline, word, and byte counts for each file |
 | `which` | `where`            | locate a command on PATH |
+| `xargs` |                    | build and execute command lines from standard input |
 
 Each applet implements the common POSIX flags — enough for day-to-day scripting, not full GNU coreutils parity.
 
