@@ -1620,6 +1620,83 @@ def test_sed_bad_regex(invoke):
     assert "sed" in err_text
 
 
+# tar
+
+def test_tar_create_and_list(invoke, workspace):
+    src = workspace / "src"
+    src.mkdir()
+    (src / "a.txt").write_bytes(b"alpha")
+    (src / "b.txt").write_bytes(b"beta")
+    archive = workspace / "out.tar"
+    rc, _, _ = invoke("tar", "-cf", str(archive), "src")
+    assert rc == 0
+    assert archive.exists()
+
+    rc, out, _ = invoke("tar", "-tf", str(archive))
+    assert rc == 0
+    names = [ln.replace("\\", "/") for ln in out.strip().splitlines()]
+    assert any(n.endswith("src/a.txt") or n == "src/a.txt" for n in names)
+    assert any(n.endswith("src/b.txt") or n == "src/b.txt" for n in names)
+
+
+def test_tar_extract(invoke, workspace):
+    src = workspace / "src"
+    src.mkdir()
+    (src / "x.txt").write_bytes(b"hello")
+    archive = workspace / "out.tar"
+    invoke("tar", "-cf", str(archive), "src")
+
+    target = workspace / "extracted"
+    target.mkdir()
+    rc, _, _ = invoke("tar", "-xf", str(archive), "-C", str(target))
+    assert rc == 0
+    assert (target / "src" / "x.txt").read_bytes() == b"hello"
+
+
+def test_tar_gzip_roundtrip(invoke, workspace):
+    src = workspace / "src"
+    src.mkdir()
+    (src / "f.txt").write_bytes(b"compressed payload" * 100)
+    archive = workspace / "out.tar.gz"
+    rc, _, _ = invoke("tar", "-czf", str(archive), "src")
+    assert rc == 0
+    # gzip-compressed archive should be somewhat smaller than the raw payload
+    raw_size = len(b"compressed payload" * 100)
+    assert archive.stat().st_size < raw_size
+
+    target = workspace / "out"
+    target.mkdir()
+    rc, _, _ = invoke("tar", "-xzf", str(archive), "-C", str(target))
+    assert rc == 0
+    assert (target / "src" / "f.txt").read_bytes() == b"compressed payload" * 100
+
+
+def test_tar_traditional_bundled_flags(invoke, workspace):
+    src = workspace / "src"
+    src.mkdir()
+    (src / "f.txt").write_bytes(b"hi")
+    archive = workspace / "out.tar"
+    # 'cvf archive src' is traditional form (no dashes)
+    rc, _, _ = invoke("tar", "cvf", str(archive), "src")
+    assert rc == 0
+    assert archive.exists()
+
+
+def test_tar_exclude(invoke, workspace):
+    src = workspace / "src"
+    src.mkdir()
+    (src / "keep.txt").write_bytes(b"")
+    (src / "skip.tmp").write_bytes(b"")
+    archive = workspace / "out.tar"
+    rc, _, _ = invoke("tar", "-cf", str(archive), "--exclude=*.tmp", "src")
+    assert rc == 0
+    rc, out, _ = invoke("tar", "-tf", str(archive))
+    assert rc == 0
+    names = out
+    assert "keep.txt" in names
+    assert "skip.tmp" not in names
+
+
 def test_yes_subprocess(workspace):
     """yes runs forever; drive it via subprocess and kill after we get output."""
     import subprocess
