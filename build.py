@@ -32,12 +32,14 @@ def main() -> int:
         "--standalone",
         "--remove-output",
         "--assume-yes-for-downloads",
-        "--output-dir",
-        str(DIST),
-        "--output-filename",
-        "pybox",
-        # Ensure every applet module is bundled (they are discovered via pkgutil at runtime).
+        f"--output-dir={DIST}",
+        "--output-filename=pybox",
+        # Applets are discovered via pkgutil at runtime, so Nuitka has to
+        # bundle the whole package explicitly.
         "--include-package=pybox.applets",
+        # Nuitka's onefile bootstrap treats "-c" as a Python interpreter
+        # self-call; our applets use -c legitimately (gzip -c, cp -c, etc.).
+        "--no-deployment-flag=self-execution",
         str(ROOT / "pybox" / "__main__.py"),
     ]
     print(" ".join(cmd))
