@@ -14,7 +14,7 @@
 
 **Single-file BusyBox-like multi-call binary, in Python.**
 
-50 POSIX utilities — `ls`, `cat`, `grep`, `sed`, `tar`, and friends — bundled into a 7 MB executable. Native Windows support without WSL, Cygwin, or git-bash. Pure Python; freezable to a standalone binary with Nuitka.
+50 POSIX utilities — `ls`, `cat`, `grep`, `sed`, `tar`, and friends — bundled into a ~5 MB executable. Native Windows support without WSL, Cygwin, or git-bash. Six native targets (Linux/Windows/macOS × x86_64/ARM64) plus a 66 KB portable zipapp that runs anywhere Python 3.8+ is installed — including ESXi.
 
 </div>
 

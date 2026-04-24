@@ -40,6 +40,20 @@ python scripts/stress.py dist/mainsail --quick
 The `--quick` flag skips the slowest cases (50 sequential binary
 invocations can OOM-kill on WSL).
 
+## Running against the zipapp
+
+The portable `mainsail.pyz` is a stdlib-only build (no Nuitka), useful
+for quick packaging checks:
+
+```bash
+python build.py --pyz            # -> dist/mainsail.pyz (~66 KB)
+python3 dist/mainsail.pyz --version
+```
+
+The zipapp uses the same code path as `python -m mainsail`, so it's not
+a substitute for exercising a real Nuitka binary — but it is a fast way
+to confirm the package import graph still works in a zipimport context.
+
 ## Adding a new applet
 
 Applets live in `mainsail/applets/`. Each file is a standalone module

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>mainsail — Unix utilities, in one binary</title>
-    <meta name="description" content="50 POSIX utilities — ls, cat, grep, sed, tar — bundled into a single 7 MB binary. Native Windows support, no WSL required. Pure Python; freezable with Nuitka.">
+    <meta name="description" content="50 POSIX utilities — ls, cat, grep, sed, tar — bundled into a single ~5 MB binary. Native Windows support, no WSL required. Linux/Windows/macOS × x86_64/ARM64, plus a portable zipapp for ESXi.">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='16' y='24' text-anchor='middle' font-family='Inter,sans-serif' font-size='24' font-weight='800' fill='%2374c7ec'%3EM%3C/text%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -152,7 +152,7 @@
         <div class="container">
             <div class="hero-logo animate"><img src="assets/logo-dark.svg" alt="mainsail"></div>
             <h1 class="hero-tagline animate" style="transition-delay:.1s">Unix utilities, in one binary, anywhere.</h1>
-            <p class="hero-desc animate" style="transition-delay:.2s">50 POSIX tools — ls, cat, grep, sed, tar — bundled into a single 7 MB executable. Native Windows support without WSL, Cygwin, or git-bash. Pure Python; freezable with Nuitka.</p>
+            <p class="hero-desc animate" style="transition-delay:.2s">50 POSIX tools — ls, cat, grep, sed, tar — bundled into a single ~5 MB executable. Native Windows support without WSL, Cygwin, or git-bash. Six native targets (Linux/Windows/macOS × x86_64/ARM64) plus a 66 KB portable zipapp for ESXi and restricted environments.</p>
             <div class="hero-ctas animate" style="transition-delay:.3s">
                 <a href="https://github.com/Real-Fruit-Snacks/mainsail/releases/latest" class="btn-primary">Download Latest</a>
                 <a href="https://github.com/Real-Fruit-Snacks/mainsail" class="btn-secondary">View Source</a>
@@ -186,9 +186,9 @@
             <div class="stat-div"></div>
             <div class="stat"><div class="stat-num" data-target="226">0</div><div class="stat-label">Tests</div></div>
             <div class="stat-div"></div>
-            <div class="stat"><div class="stat-num" data-target="7" data-suffix="MB">0</div><div class="stat-label">Binary</div></div>
+            <div class="stat"><div class="stat-num" data-target="5" data-suffix="MB">0</div><div class="stat-label">Binary</div></div>
             <div class="stat-div"></div>
-            <div class="stat"><div class="stat-num" data-target="3">0</div><div class="stat-label">Platforms</div></div>
+            <div class="stat"><div class="stat-num" data-target="6">0</div><div class="stat-label">Targets</div></div>
             <div class="stat-div"></div>
             <div class="stat"><div class="stat-num" data-target="0" data-prefix="" data-suffix=" deps">0</div><div class="stat-label">Runtime</div></div>
         </div>
@@ -209,8 +209,8 @@
                     <div class="mini-terminal"><span class="t-g">$</span> mainsail --list | wc -l<br><span class="t-b">50</span><br><span class="t-g">$</span> ln mainsail ls && ./ls -la</div>
                 </div>
                 <div class="bento-card bento-stat animate" style="transition-delay:.18s">
-                    <div class="big">7<span style="font-size:24px">MB</span></div>
-                    <div class="label">Single Binary</div>
+                    <div class="big">~5<span style="font-size:24px">MB</span></div>
+                    <div class="label">Native Binary</div>
                 </div>
                 <div class="bento-card animate" style="transition-delay:.2s">
                     <h3 style="color:var(--mauve)">Native Windows</h3>
@@ -236,6 +236,14 @@
                 <div class="bento-card animate" style="transition-delay:.26s">
                     <h3 style="color:var(--yellow)">Hackable</h3>
                     <p>~50 lines of Python per applet. Add a new one by dropping a module into <code>mainsail/applets/</code> with <code>NAME</code>, <code>HELP</code>, and <code>main(argv)</code>.</p>
+                </div>
+                <div class="bento-card animate" style="transition-delay:.34s">
+                    <h3 style="color:var(--accent1)">Portable Zipapp</h3>
+                    <p>A 66 KB <code>mainsail.pyz</code> runs anywhere Python 3.8+ is installed — ESXi hosts, exotic architectures, jailbroken routers, restrictive corporate machines. SCP, run, done.</p>
+                </div>
+                <div class="bento-card bento-stat animate" style="transition-delay:.42s">
+                    <div class="big" style="color:var(--mauve)">6</div>
+                    <div class="label">Native Targets</div>
                 </div>
             </div>
         </div>
@@ -386,7 +394,12 @@
 <span class="t-m"># Or freeze a standalone binary</span>
 <span class="t-g">$</span> pip install "Nuitka[onefile]"
 <span class="t-g">$</span> python build.py
-<span class="t-b">→ dist/mainsail (~7 MB, no Python at runtime)</span></pre></div>
+<span class="t-b">→ dist/mainsail (~5 MB, no Python at runtime)</span>
+
+<span class="t-m"># Or a portable zipapp — runs on any Python 3.8+
+# (ESXi, exotic arches, restricted hosts)</span>
+<span class="t-g">$</span> python build.py --pyz
+<span class="t-b">→ dist/mainsail.pyz (~66 KB)</span></pre></div>
                 </div>
                 <div class="terminal animate" style="transition-delay:.25s">
                     <div class="terminal-bar"><span class="terminal-dot"></span><span class="terminal-dot"></span><span class="terminal-dot"></span><span class="terminal-label">usage.sh</span></div>
