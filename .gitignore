@@ -20,3 +20,17 @@ htmlcov/
 *.swp
 .DS_Store
 Thumbs.db
+
+# AI tooling — local state, caches, and chat/history artifacts.
+# Instruction files meant to be shared with collaborators (CLAUDE.md,
+# AGENTS.md, .cursorrules) are NOT ignored — remove from list if you
+# want to commit them as onboarding for AI assistants.
+.claude/
+.cursor/
+.aider*
+.continue/
+.codeium/
+.windsurf/
+.zed/
+.copilot/
+.github/copilot-instructions.md
