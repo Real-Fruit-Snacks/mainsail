@@ -1,145 +1,170 @@
-# mainsail
+<div align="center">
 
-A cross-platform BusyBox-like multi-call binary written in Python. One executable, many Unix-style utilities — runs natively on Linux, macOS, and Windows.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Real-Fruit-Snacks/mainsail/main/docs/assets/logo-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/Real-Fruit-Snacks/mainsail/main/docs/assets/logo-light.svg">
+  <img alt="mainsail" src="https://raw.githubusercontent.com/Real-Fruit-Snacks/mainsail/main/docs/assets/logo-dark.svg" width="560">
+</picture>
 
-Unlike BusyBox, mainsail isn't trying to fit into 1 MB for embedded systems. The niche is different: a **single-file, hackable, portable toolkit** that gives you consistent Unix utilities everywhere, especially on Windows where they aren't installed by default.
+![Python](https://img.shields.io/badge/language-Python-3776ab.svg)
+![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Windows%20%7C%20macOS-lightgrey)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Tests](https://img.shields.io/badge/tests-226%20passing-brightgreen.svg)
 
-## Install
+**Single-file BusyBox-like multi-call binary, in Python.**
 
-### Download a release binary (no Python needed)
+50 POSIX utilities — `ls`, `cat`, `grep`, `sed`, `tar`, and friends — bundled into a 7 MB executable. Native Windows support without WSL, Cygwin, or git-bash. Pure Python; freezable to a standalone binary with Nuitka.
 
-Grab the binary for your OS from the [Releases page](../../releases):
+</div>
 
-- `mainsail-linux-x64`
-- `mainsail-macos-arm64`
-- `mainsail-windows-x64.exe`
+---
 
-Drop it anywhere on your `PATH` and you're done.
+## Quick Start
 
-### From source
+**Prerequisites:** Python 3.10+
 
 ```bash
-git clone https://github.com/<you>/mainsail
+git clone https://github.com/Real-Fruit-Snacks/mainsail.git
 cd mainsail
 pip install -e .
 ```
 
-## Usage
-
-Invoke any applet via `mainsail <applet> [args]`:
+**Verify:**
 
 ```bash
-mainsail ls -la
-mainsail cat file.txt | mainsail grep pattern
-mainsail find . -name '*.py' -type f
-mainsail --list      # show all applets
 mainsail --version
+mainsail --list
+mainsail ls --help
 ```
 
-On Windows you can also use native-sounding aliases:
+**Or grab a pre-built binary** — no Python required:
+
+- `mainsail-windows-x64.exe`
+- `mainsail-linux-x64`
+- `mainsail-macos-arm64`
+
+Drop it anywhere on `PATH` and run.
+
+---
+
+## Features
+
+### One binary, fifty utilities
+
+Every common POSIX tool you'd reach for in a shell pipeline. Dispatch via `mainsail <applet>` or symlink/hardlink to call directly.
+
+```bash
+mainsail ls -la                          # GNU-style flags
+mainsail cat file.txt | mainsail grep -C 2 pattern
+mainsail find . -name '*.py' -size +1k -mtime -7
+mainsail seq 100 | mainsail sort -rn | mainsail head -5
+```
+
+### Native Windows
+
+No WSL, no Cygwin. `mainsail.exe` runs on bare Windows and recognizes Windows-native command names as aliases.
 
 ```cmd
-mainsail dir .
-mainsail type file.txt
-mainsail copy a.txt b.txt
-mainsail del old.txt
+mainsail dir .                           :: == ls
+mainsail type file.txt                   :: == cat
+mainsail copy a.txt b.txt                :: == cp
+mainsail del old.txt                     :: == rm
+mainsail where python                    :: == which
 ```
 
-### Multi-call mode (optional)
+### Real applets, not stubs
 
-If you hardlink or symlink the binary to the applet names, you can call them directly:
+Each applet implements the common POSIX flags and edge cases. `find` has an expression tree with `-exec`, `-prune`, `-and`/`-or`, parens. `sed` has substitution, addresses, in-place edit, BRE/ERE. `sort` has key fields and separators. `tar` handles `-z`/`-j`/`-xz` compression and traditional + dashed flag forms.
 
 ```bash
-ln mainsail ls
-ls -la   # runs the ls applet
+mainsail find . -name '*.tmp' -delete
+mainsail sed -i 's/foo/bar/g' *.txt
+mainsail sort -k 3,3n -t , data.csv
+mainsail tar -czf src.tar.gz src/ --exclude='*.pyc'
 ```
+
+### Pipeline-grade I/O
+
+Binary-safe through `cat`/`tee`/`gzip`. CRLF survives Windows text-mode round-trips. `tail -f` follows files and detects rotation. `xargs` accepts `-print0`/`-0` to handle Windows backslashes.
+
+```bash
+mainsail find . -type f -print0 | mainsail xargs -0 mainsail sha256sum
+mainsail tail -f /var/log/app.log
+mainsail gzip -c data.bin | mainsail gunzip > data.bin.copy
+```
+
+### Cross-platform integrity
+
+Same SHA-256 of `"abc"` (`ba7816bf...015ad`) on Windows and Linux. `tar` archives are interchangeable. Stress harness verifies 23 scenarios across both platforms.
+
+---
 
 ## Supported applets
 
-| Applet | Aliases | Description |
-|--------|---------|-------------|
-| `basename` |                | strip directory components from a filename |
-| `cat`   | `type`             | concatenate files and print on the standard output |
-| `chmod` |                    | change file mode bits (octal or symbolic) |
-| `cp`    | `copy`             | copy files and directories |
-| `cut`   |                    | remove sections from each line of files |
-| `date`  |                    | print or format the date and time |
-| `df`    |                    | report filesystem disk space usage |
-| `dirname` |                  | strip last component from a path |
-| `du`    |                    | estimate file space usage |
-| `echo`  |                    | display a line of text |
-| `env`   |                    | run a program in a modified environment, or print the environment |
-| `false` |                    | do nothing, unsuccessfully (exits 1) |
-| `find`  |                    | search for files in a directory hierarchy |
-| `grep`  |                    | print lines matching a pattern |
-| `gunzip` |                   | decompress .gz files |
-| `gzip`  |                    | compress / decompress files (.gz) |
-| `head`  |                    | output the first part of files |
-| `hostname` |                | show the system's hostname |
-| `ln`    |                    | create hard or symbolic links |
-| `ls`    | `dir`              | list directory contents |
-| `md5sum` |                   | compute/verify MD5 digests |
-| `mkdir` | `md`               | make directories |
-| `mv`    | `move`, `ren`, `rename` | move (rename) files |
-| `printf` |                   | format and print data |
-| `pwd`   |                    | print name of current/working directory |
-| `realpath` |                | resolve a path to its canonical absolute form |
-| `rm`    | `del`, `erase`     | remove files or directories |
-| `sed`   |                    | stream editor (s///, d, p, q, =, y, addresses) |
-| `seq`   |                    | print a sequence of numbers |
-| `sha1sum`  |                 | compute/verify SHA-1 digests |
-| `sha256sum` |                | compute/verify SHA-256 digests |
-| `sha512sum` |                | compute/verify SHA-512 digests |
-| `sleep` |                    | delay for a specified amount of time |
-| `sort`  |                    | sort lines of text files |
-| `stat`  |                    | display file or file system status |
-| `tail`  |                    | output the last part of files (supports `-f`) |
-| `tar`   |                    | create/extract/list tar archives (gz/bz2/xz) |
-| `tee`   |                    | read stdin and write to stdout and files |
-| `touch` |                    | change file timestamps (create if missing) |
-| `tr`    |                    | translate, delete, or squeeze characters |
-| `true`  |                    | do nothing, successfully (exits 0) |
-| `uname` |                    | print system information |
-| `uniq`  |                    | collapse repeated adjacent lines |
-| `unzip` |                    | extract files from a .zip archive |
-| `wc`    |                    | print newline, word, and byte counts for each file |
-| `which` | `where`            | locate a command on PATH |
-| `whoami` |                   | print effective user name |
-| `xargs` |                    | build and execute command lines from standard input |
-| `yes`   |                    | output a string repeatedly until killed |
-| `zip`   |                    | package and compress files into a .zip archive |
+| Category    | Applets |
+|-------------|---------|
+| File ops    | `ls` `cp` `mv` `rm` `mkdir` `touch` `find` `chmod` `ln` `stat` |
+| Text        | `cat` `grep` `head` `tail` `wc` `sort` `uniq` `cut` `tr` `sed` `tee` `xargs` `printf` `echo` |
+| Hashing     | `md5sum` `sha1sum` `sha256sum` `sha512sum` |
+| Archives    | `tar` `gzip` `gunzip` `zip` `unzip` |
+| Filesystem  | `du` `df` |
+| Paths       | `basename` `dirname` `realpath` `pwd` `which` |
+| System      | `uname` `hostname` `whoami` `date` `env` `sleep` |
+| Control     | `true` `false` `yes` `seq` |
 
-Each applet implements the common POSIX flags — enough for day-to-day scripting, not full GNU coreutils parity.
+Run `mainsail --list` for the full set with one-line descriptions, or `mainsail <applet> --help` for per-applet usage and flags.
+
+---
+
+## Architecture
+
+```
+mainsail/
+├── __main__.py      # python -m mainsail
+├── cli.py           # dispatch: argv[0] multi-call + subcommand modes
+├── registry.py      # auto-discovery of applet modules
+├── usage.py         # per-applet --help text
+├── common.py        # shared helpers: err, user_name, should_overwrite
+└── applets/         # one module per applet, all implement
+    ├── ls.py        #   NAME, ALIASES, HELP, main(argv) -> int
+    ├── cat.py
+    └── ...          # 50 modules total
+```
+
+**Four-layer flow:**
+
+1. **Entry** — `__main__.py` or installed `mainsail` script enters `cli.main(argv)`.
+2. **Dispatch** — `cli.py` checks `argv[0]` basename for multi-call (e.g. `ls -la` when hardlinked); otherwise treats `argv[1]` as the applet name. Intercepts `--help` (long form only — `-h` is reserved for applet flags like `df -h`).
+3. **Registry** — `registry.py` lazy-loads `mainsail.applets.*` once, registering each module's `NAME` + `ALIASES` → `main` function.
+4. **Applet** — receives `argv` as a list, returns an exit code (0 success, 1 runtime error, 2 usage error). Reads stdin via `sys.stdin.buffer` for binary safety; writes via `sys.stdout` / `sys.stdout.buffer`.
+
+Adding a new applet means dropping a module into `mainsail/applets/` with the four-symbol contract. Auto-discovery picks it up on next launch.
+
+---
 
 ## Development
 
 ```bash
-pip install -e ".[dev]"   # install with test deps
-pytest -q                 # run test suite
+pip install -e ".[dev]"            # install with test deps
+python -m pytest -q                # 226 unit tests
+python scripts/stress.py           # 23-case stress harness
+python scripts/stress.py dist/mainsail.exe --quick   # against frozen binary
 ```
-
-Applets live in `mainsail/applets/`. Adding a new one means dropping in a module with:
-
-```python
-NAME = "myapplet"
-ALIASES: list[str] = []
-HELP = "one-line description"
-
-def main(argv: list[str]) -> int:
-    ...
-    return 0
-```
-
-Auto-discovery picks it up — no manual registration required.
 
 ### Building a standalone binary
 
 ```bash
-pip install nuitka
+pip install "Nuitka[onefile]"
 python build.py
-# → dist/mainsail (or dist/mainsail.exe on Windows)
+# -> dist/mainsail (Linux/macOS) or dist/mainsail.exe (Windows)
 ```
+
+Output is a single self-contained executable: ~7 MB on Windows, ~5.5 MB on Linux. Compressed with zstandard. No Python needed at runtime.
+
+CI matrix builds binaries for Linux x64, macOS arm64, and Windows x64 on every release tag.
+
+---
 
 ## License
 
-MIT
+MIT.
