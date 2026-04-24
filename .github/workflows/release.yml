@@ -17,16 +17,28 @@ jobs:
             # python-build-standalone is noticeably smaller than the
             # hosted Linux Python (stripped, statically linked).
             python_source: standalone
+          - os: ubuntu-24.04-arm
+            artifact: mainsail-linux-arm64
+            ext: ""
+            python_source: standalone
           - os: macos-latest
             artifact: mainsail-macos-arm64
             ext: ""
             # On macOS, the hosted Python is leaner than python-build-
             # standalone once Nuitka ingests it into an onefile payload.
             python_source: hosted
+          - os: macos-13
+            artifact: mainsail-macos-x64
+            ext: ""
+            python_source: hosted
           - os: windows-latest
             artifact: mainsail-windows-x64
             ext: ".exe"
             # Same story on Windows: hosted Python wins by ~1 MB.
+            python_source: hosted
+          - os: windows-11-arm
+            artifact: mainsail-windows-arm64
+            ext: ".exe"
             python_source: hosted
     runs-on: ${{ matrix.os }}
     steps:

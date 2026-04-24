@@ -7,6 +7,16 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-04-23
+
+### Added
+- Linux ARM64 binary (`mainsail-linux-arm64`) built on `ubuntu-24.04-arm`
+- macOS Intel binary (`mainsail-macos-x64`) built on `macos-13`
+- Windows ARM64 binary (`mainsail-windows-arm64`) built on `windows-11-arm`
+
+Release now ships six native binaries covering x86_64 and ARM64 for all
+three major desktop/server platforms.
+
 ## [0.1.0] - 2026-04-23
 
 Initial release.
@@ -45,5 +55,6 @@ Initial release.
 - GitHub Actions CI matrix: Linux / macOS / Windows × Python 3.10–3.13
 - Release workflow that builds and publishes binaries on tag push
 
-[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.4
 [0.1.0]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.0
