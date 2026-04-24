@@ -1,4 +1,4 @@
-"""Build a standalone pybox binary with Nuitka.
+"""Build a standalone mainsail binary with Nuitka.
 
 Usage:
     python build.py            # builds into ./dist/
@@ -33,14 +33,14 @@ def main() -> int:
         "--remove-output",
         "--assume-yes-for-downloads",
         f"--output-dir={DIST}",
-        "--output-filename=pybox",
+        "--output-filename=mainsail",
         # Applets are discovered via pkgutil at runtime, so Nuitka has to
         # bundle the whole package explicitly.
-        "--include-package=pybox.applets",
+        "--include-package=mainsail.applets",
         # Nuitka's onefile bootstrap treats "-c" as a Python interpreter
         # self-call; our applets use -c legitimately (gzip -c, cp -c, etc.).
         "--no-deployment-flag=self-execution",
-        str(ROOT / "pybox" / "__main__.py"),
+        str(ROOT / "mainsail" / "__main__.py"),
     ]
     print(" ".join(cmd))
     return subprocess.call(cmd, cwd=ROOT)

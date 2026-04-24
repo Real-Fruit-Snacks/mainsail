@@ -1,11 +1,11 @@
-"""Comprehensive stress-test harness for pybox.
+"""Comprehensive stress-test harness for mainsail.
 
 Exercises large inputs, Unicode, binary-safe streams, deep trees,
 complex pipelines, round-trips, and edge cases.
 
 Usage:
-    python scripts/stress.py                     # run against `python -m pybox`
-    python scripts/stress.py /path/to/pybox.exe  # run against a compiled binary
+    python scripts/stress.py                     # run against `python -m mainsail`
+    python scripts/stress.py /path/to/mainsail.exe  # run against a compiled binary
     python scripts/stress.py --quick             # skip the slowest cases
 
 Notes:
@@ -43,7 +43,7 @@ def _child_env() -> dict[str, str]:
     env = os.environ.copy()
     env["PYTHONIOENCODING"] = "utf-8"
     env["PYTHONUTF8"] = "1"
-    # When we chdir into a scratch dir, `python -m pybox` still needs to
+    # When we chdir into a scratch dir, `python -m mainsail` still needs to
     # find the package. Pin PYTHONPATH to the project root.
     existing = env.get("PYTHONPATH", "")
     env["PYTHONPATH"] = str(PROJECT_ROOT) + (os.pathsep + existing if existing else "")
@@ -414,7 +414,7 @@ def _run_one(name: str, fn, slow: bool) -> None:
         print(f"  {name:<46}  SKIP (--quick)")
         return
     print(f"  {name:<46}  ", end="", flush=True)
-    root = Path(tempfile.mkdtemp(prefix="pybox_stress_"))
+    root = Path(tempfile.mkdtemp(prefix="mainsail_stress_"))
     _SCRATCH = root
     t0 = time.perf_counter()
     try:
@@ -445,7 +445,7 @@ def main() -> int:
     global BIN_CMD, QUICK
     parser = argparse.ArgumentParser()
     parser.add_argument("binary", nargs="?", default=None,
-                        help="pybox binary to test (default: python -m pybox)")
+                        help="mainsail binary to test (default: python -m mainsail)")
     parser.add_argument("--quick", action="store_true",
                         help="skip slow cases")
     args = parser.parse_args()
@@ -456,7 +456,7 @@ def main() -> int:
         BIN_CMD = [resolved]
         label = resolved
     else:
-        BIN_CMD = [sys.executable, "-m", "pybox"]
+        BIN_CMD = [sys.executable, "-m", "mainsail"]
         label = " ".join(BIN_CMD)
     QUICK = args.quick
 

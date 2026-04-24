@@ -1,8 +1,8 @@
-# pybox
+# mainsail
 
 A cross-platform BusyBox-like multi-call binary written in Python. One executable, many Unix-style utilities — runs natively on Linux, macOS, and Windows.
 
-Unlike BusyBox, pybox isn't trying to fit into 1 MB for embedded systems. The niche is different: a **single-file, hackable, portable toolkit** that gives you consistent Unix utilities everywhere, especially on Windows where they aren't installed by default.
+Unlike BusyBox, mainsail isn't trying to fit into 1 MB for embedded systems. The niche is different: a **single-file, hackable, portable toolkit** that gives you consistent Unix utilities everywhere, especially on Windows where they aren't installed by default.
 
 ## Install
 
@@ -10,39 +10,39 @@ Unlike BusyBox, pybox isn't trying to fit into 1 MB for embedded systems. The ni
 
 Grab the binary for your OS from the [Releases page](../../releases):
 
-- `pybox-linux-x64`
-- `pybox-macos-arm64`
-- `pybox-windows-x64.exe`
+- `mainsail-linux-x64`
+- `mainsail-macos-arm64`
+- `mainsail-windows-x64.exe`
 
 Drop it anywhere on your `PATH` and you're done.
 
 ### From source
 
 ```bash
-git clone https://github.com/<you>/pybox
-cd pybox
+git clone https://github.com/<you>/mainsail
+cd mainsail
 pip install -e .
 ```
 
 ## Usage
 
-Invoke any applet via `pybox <applet> [args]`:
+Invoke any applet via `mainsail <applet> [args]`:
 
 ```bash
-pybox ls -la
-pybox cat file.txt | pybox grep pattern
-pybox find . -name '*.py' -type f
-pybox --list      # show all applets
-pybox --version
+mainsail ls -la
+mainsail cat file.txt | mainsail grep pattern
+mainsail find . -name '*.py' -type f
+mainsail --list      # show all applets
+mainsail --version
 ```
 
 On Windows you can also use native-sounding aliases:
 
 ```cmd
-pybox dir .
-pybox type file.txt
-pybox copy a.txt b.txt
-pybox del old.txt
+mainsail dir .
+mainsail type file.txt
+mainsail copy a.txt b.txt
+mainsail del old.txt
 ```
 
 ### Multi-call mode (optional)
@@ -50,7 +50,7 @@ pybox del old.txt
 If you hardlink or symlink the binary to the applet names, you can call them directly:
 
 ```bash
-ln pybox ls
+ln mainsail ls
 ls -la   # runs the ls applet
 ```
 
@@ -118,7 +118,7 @@ pip install -e ".[dev]"   # install with test deps
 pytest -q                 # run test suite
 ```
 
-Applets live in `pybox/applets/`. Adding a new one means dropping in a module with:
+Applets live in `mainsail/applets/`. Adding a new one means dropping in a module with:
 
 ```python
 NAME = "myapplet"
@@ -137,7 +137,7 @@ Auto-discovery picks it up — no manual registration required.
 ```bash
 pip install nuitka
 python build.py
-# → dist/pybox (or dist/pybox.exe on Windows)
+# → dist/mainsail (or dist/mainsail.exe on Windows)
 ```
 
 ## License

@@ -8,7 +8,7 @@ from pathlib import Path
 def test_version(invoke):
     rc, out, _ = invoke("--version")
     assert rc == 0
-    assert out.startswith("pybox ")
+    assert out.startswith("mainsail ")
 
 
 def test_list_contains_core_applets(invoke):
@@ -27,7 +27,7 @@ def test_unknown_applet(invoke):
 
 
 def test_applet_help(invoke):
-    """`pybox ls --help` prints usage with the header and options block."""
+    """`mainsail ls --help` prints usage with the header and options block."""
     rc, out, _ = invoke("ls", "--help")
     assert rc == 0
     assert "ls - list directory contents" in out
@@ -44,8 +44,8 @@ def test_applet_h_not_help(invoke, workspace):
     assert "Usage:" not in out
 
 
-def test_pybox_help_applet(invoke):
-    """`pybox --help ls` is equivalent to `pybox ls --help`."""
+def test_mainsail_help_applet(invoke):
+    """`mainsail --help ls` is equivalent to `mainsail ls --help`."""
     rc, out, _ = invoke("--help", "ls")
     assert rc == 0
     assert "ls - list directory contents" in out
@@ -574,16 +574,16 @@ def test_tail(invoke, workspace):
 
 
 def test_tail_f_follows_append(workspace):
-    """Run 'pybox tail -f' as a subprocess and verify it picks up appends."""
+    """Run 'mainsail tail -f' as a subprocess and verify it picks up appends."""
     import subprocess
     import time as t
-    pybox_root = Path(__file__).resolve().parent.parent
+    mainsail_root = Path(__file__).resolve().parent.parent
     f = workspace / "follow.log"
     f.write_bytes(b"initial\n")
     env = os.environ.copy()
-    env["PYTHONPATH"] = str(pybox_root) + os.pathsep + env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = str(mainsail_root) + os.pathsep + env.get("PYTHONPATH", "")
     proc = subprocess.Popen(
-        [sys.executable, "-m", "pybox", "tail", "-f", "-s", "0.05", str(f)],
+        [sys.executable, "-m", "mainsail", "tail", "-f", "-s", "0.05", str(f)],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         env=env,
@@ -2031,11 +2031,11 @@ def test_yes_subprocess(workspace):
     """yes runs forever; drive it via subprocess and kill after we get output."""
     import subprocess
     import time as t
-    pybox_root = Path(__file__).resolve().parent.parent
+    mainsail_root = Path(__file__).resolve().parent.parent
     env = os.environ.copy()
-    env["PYTHONPATH"] = str(pybox_root) + os.pathsep + env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = str(mainsail_root) + os.pathsep + env.get("PYTHONPATH", "")
     proc = subprocess.Popen(
-        [sys.executable, "-m", "pybox", "yes", "hello"],
+        [sys.executable, "-m", "mainsail", "yes", "hello"],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         env=env,

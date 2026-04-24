@@ -12,13 +12,13 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            artifact: pybox-linux-x64
+            artifact: mainsail-linux-x64
             ext: ""
           - os: macos-latest
-            artifact: pybox-macos-arm64
+            artifact: mainsail-macos-arm64
             ext: ""
           - os: windows-latest
-            artifact: pybox-windows-x64
+            artifact: mainsail-windows-x64
             ext: ".exe"
     runs-on: ${{ matrix.os }}
     steps:
@@ -33,7 +33,7 @@ jobs:
       - name: Rename artifact
         shell: bash
         run: |
-          mv "dist/pybox${{ matrix.ext }}" "dist/${{ matrix.artifact }}${{ matrix.ext }}"
+          mv "dist/mainsail${{ matrix.ext }}" "dist/${{ matrix.artifact }}${{ matrix.ext }}"
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}

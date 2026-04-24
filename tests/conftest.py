@@ -19,11 +19,11 @@ def workspace(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
 @pytest.fixture
 def invoke():
-    """Return a callable that invokes pybox.cli.main with the given argv.
+    """Return a callable that invokes mainsail.cli.main with the given argv.
 
     Returns (return_code, stdout_text, stderr_text).
     """
-    from pybox.cli import main
+    from mainsail.cli import main
 
     def _invoke(*args: str) -> tuple[int, str, str]:
         import io
@@ -40,7 +40,7 @@ def invoke():
         try:
             sys.stdout = _Stdout(stdout_buf)
             sys.stderr = stderr_buf
-            rc = main(["pybox", *args])
+            rc = main(["mainsail", *args])
         finally:
             sys.stdout, sys.stderr = old_out, old_err
         out = stdout_buf.getvalue().decode("utf-8", errors="replace")
