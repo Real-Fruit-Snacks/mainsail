@@ -1867,6 +1867,119 @@ def test_unzip_n_never_overwrite(invoke, workspace):
     assert (workspace / "extracted" / "f.txt").read_bytes() == b"existing"
 
 
+# md5sum / sha1sum / sha256sum / sha512sum
+
+def _known_hash(payload: bytes, algo: str) -> str:
+    import hashlib as _h
+    h = _h.new(algo)
+    h.update(payload)
+    return h.hexdigest()
+
+
+def test_md5sum_file(invoke, workspace):
+    payload = b"hello world"
+    f = workspace / "h.txt"
+    f.write_bytes(payload)
+    rc, out, _ = invoke("md5sum", str(f))
+    assert rc == 0
+    expected = _known_hash(payload, "md5")
+    assert out.startswith(expected)
+    assert str(f) in out
+
+
+def test_sha256sum_file(invoke, workspace):
+    f = workspace / "h.txt"
+    f.write_bytes(b"abc")
+    rc, out, _ = invoke("sha256sum", str(f))
+    assert rc == 0
+    expected = _known_hash(b"abc", "sha256")
+    assert out.startswith(expected)
+
+
+def test_sha512sum_file(invoke, workspace):
+    f = workspace / "h.txt"
+    f.write_bytes(b"xyz" * 1000)
+    rc, out, _ = invoke("sha512sum", str(f))
+    assert rc == 0
+    assert out.startswith(_known_hash(b"xyz" * 1000, "sha512"))
+
+
+def test_sha1sum_stdin(invoke, monkeypatch):
+    _with_stdin(monkeypatch, b"data")
+    rc, out, _ = invoke("sha1sum")
+    assert rc == 0
+    expected = _known_hash(b"data", "sha1")
+    assert out.startswith(expected)
+    assert " -" in out
+
+
+def test_md5sum_multiple_files(invoke, workspace):
+    (workspace / "a.txt").write_bytes(b"a")
+    (workspace / "b.txt").write_bytes(b"b")
+    rc, out, _ = invoke("md5sum", "a.txt", "b.txt")
+    assert rc == 0
+    lines = [ln for ln in out.splitlines() if ln]
+    assert len(lines) == 2
+    assert lines[0].endswith("a.txt")
+    assert lines[1].endswith("b.txt")
+
+
+def test_md5sum_tag_bsd_format(invoke, workspace):
+    f = workspace / "h.txt"
+    f.write_bytes(b"tagged")
+    rc, out, _ = invoke("md5sum", "--tag", str(f))
+    assert rc == 0
+    assert out.startswith("MD5 (")
+    assert ") = " in out
+
+
+def test_md5sum_check_ok(invoke, workspace):
+    f = workspace / "h.txt"
+    f.write_bytes(b"check me")
+    # compute known hash
+    expected = _known_hash(b"check me", "md5")
+    check_file = workspace / "sums.md5"
+    check_file.write_bytes(f"{expected}  h.txt\n".encode("ascii"))
+    rc, out, _ = invoke("md5sum", "-c", str(check_file))
+    assert rc == 0
+    assert "h.txt: OK" in out
+
+
+def test_md5sum_check_fail(invoke, workspace):
+    f = workspace / "h.txt"
+    f.write_bytes(b"actual contents")
+    wrong_hash = "0" * 32
+    check_file = workspace / "sums.md5"
+    check_file.write_bytes(f"{wrong_hash}  h.txt\n".encode("ascii"))
+    rc, out, _ = invoke("md5sum", "-c", str(check_file))
+    assert rc == 1
+    assert "h.txt: FAILED" in out
+
+
+def test_sha256sum_check_bsd_tag_roundtrip(invoke, workspace):
+    f = workspace / "h.txt"
+    f.write_bytes(b"roundtrip")
+    # Use our own --tag output as the check file
+    rc, out, _ = invoke("sha256sum", "--tag", "h.txt")
+    assert rc == 0
+    check_file = workspace / "sums.txt"
+    check_file.write_bytes(out.encode("ascii"))
+    rc, out2, _ = invoke("sha256sum", "-c", str(check_file))
+    assert rc == 0
+    assert "h.txt: OK" in out2
+
+
+def test_md5sum_check_status_quiet(invoke, workspace):
+    f = workspace / "h.txt"
+    f.write_bytes(b"hi")
+    expected = _known_hash(b"hi", "md5")
+    check_file = workspace / "sums"
+    check_file.write_bytes(f"{expected}  h.txt\n".encode("ascii"))
+    rc, out, _ = invoke("md5sum", "-c", "--status", str(check_file))
+    assert rc == 0
+    assert out == ""  # --status suppresses all normal output
+
+
 def test_yes_subprocess(workspace):
     """yes runs forever; drive it via subprocess and kill after we get output."""
     import subprocess

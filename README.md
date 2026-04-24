@@ -78,6 +78,7 @@ ls -la   # runs the ls applet
 | `hostname` |                | show the system's hostname |
 | `ln`    |                    | create hard or symbolic links |
 | `ls`    | `dir`              | list directory contents |
+| `md5sum` |                   | compute/verify MD5 digests |
 | `mkdir` | `md`               | make directories |
 | `mv`    | `move`, `ren`, `rename` | move (rename) files |
 | `printf` |                   | format and print data |
@@ -86,6 +87,9 @@ ls -la   # runs the ls applet
 | `rm`    | `del`, `erase`     | remove files or directories |
 | `sed`   |                    | stream editor (s///, d, p, q, =, y, addresses) |
 | `seq`   |                    | print a sequence of numbers |
+| `sha1sum`  |                 | compute/verify SHA-1 digests |
+| `sha256sum` |                | compute/verify SHA-256 digests |
+| `sha512sum` |                | compute/verify SHA-512 digests |
 | `sleep` |                    | delay for a specified amount of time |
 | `sort`  |                    | sort lines of text files |
 | `stat`  |                    | display file or file system status |
