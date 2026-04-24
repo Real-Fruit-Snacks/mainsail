@@ -72,7 +72,12 @@ def build_binary() -> int:
         sys.executable, "-m", "nuitka",
         "--onefile",
         "--standalone",
-        "--remove-output",
+        # NB: `--remove-output` used to tidy the intermediate .dist dir, but
+        # on Windows ARM64 runners Defender file-locks the freshly-written
+        # artifacts long enough for Nuitka's 5-retry cleanup to fail FATAL
+        # even though the onefile .exe was already produced. Skip auto-
+        # cleanup; ephemeral CI VMs don't care, and locals can `rm -rf
+        # dist/*.dist` themselves.
         "--assume-yes-for-downloads",
         f"--output-dir={DIST}",
         "--output-filename=mainsail",

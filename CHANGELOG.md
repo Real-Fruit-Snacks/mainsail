@@ -7,6 +7,17 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-04-23
+
+### Fixed
+- Windows ARM64 Nuitka build failed during cleanup of the intermediate
+  `.dist` directory — Defender file-locked the freshly-written artifacts
+  just long enough for Nuitka's 5-retry cleanup to return FATAL, even
+  though the onefile `.exe` was already produced. Dropped
+  `--remove-output` from `build.py`; ephemeral CI VMs don't care about
+  leftover intermediates, and locals can clean with
+  `rm -rf dist/*.dist dist/*.build` if they want a tidy tree.
+
 ## [0.1.5] - 2026-04-23
 
 ### Added
@@ -77,7 +88,8 @@ Initial release.
 - GitHub Actions CI matrix: Linux / macOS / Windows × Python 3.10–3.13
 - Release workflow that builds and publishes binaries on tag push
 
-[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.6...HEAD
+[0.1.6]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.6
 [0.1.5]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.5
 [0.1.4]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.4
 [0.1.0]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.0
