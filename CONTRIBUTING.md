@@ -16,7 +16,7 @@ pip install -e ".[dev]"          # editable install with test deps
 **Verify:**
 
 ```bash
-python -m pytest -q              # 226 unit tests
+python -m pytest -q              # 268 unit tests
 python -m mainsail --list        # should print all 51 applets
 ```
 
@@ -122,7 +122,7 @@ grep: add -A/-B/-C context, -o, -w, -q
 
 ## Pull request checklist
 
-- [ ] `python -m pytest -q` passes (226/226)
+- [ ] `python -m pytest -q` passes (268/268)
 - [ ] New/changed behavior has tests
 - [ ] `mainsail <applet> --help` text updated in `mainsail/usage.py`
       when flags change

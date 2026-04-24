@@ -14,7 +14,7 @@
 
 **Single-file BusyBox-like multi-call binary, in Python.**
 
-51 POSIX utilities — `ls`, `cat`, `grep`, `sed`, `awk`, `tar`, and friends — bundled into a ~5 MB executable. Native Windows support without WSL, Cygwin, or git-bash. Six native targets (Linux/Windows/macOS × x86_64/ARM64) plus a 66 KB portable zipapp that runs anywhere Python 3.8+ is installed — including ESXi.
+51 POSIX utilities — `ls`, `cat`, `grep`, `sed`, `awk`, `tar`, and friends — bundled into a ~5 MB executable. Native Windows support without WSL, Cygwin, or git-bash. Five native targets (Linux/Windows × x86_64/ARM64, macOS ARM64) plus an ~80 KB portable zipapp that runs anywhere Python 3.8+ is installed — including ESXi.
 
 </div>
 
@@ -50,7 +50,7 @@ _Intel Mac support: GitHub's free-tier `macos-13` runner queue is effectively un
 
 Drop it anywhere on `PATH` and run.
 
-**Or use the portable zipapp** — `mainsail.pyz` (~66 KB) runs on any host with Python 3.8+, including ESXi, exotic architectures, jailbroken routers, and restrictive corporate machines where installing a native binary isn't practical:
+**Or use the portable zipapp** — `mainsail.pyz` (~80 KB) runs on any host with Python 3.8+, including ESXi, exotic architectures, jailbroken routers, and restrictive corporate machines where installing a native binary isn't practical:
 
 ```bash
 scp mainsail.pyz host:/tmp/
@@ -61,7 +61,7 @@ ssh host 'python3 /tmp/mainsail.pyz ls -la'
 
 ## Features
 
-### One binary, fifty utilities
+### One binary, fifty-one utilities
 
 Every common POSIX tool you'd reach for in a shell pipeline. Dispatch via `mainsail <applet>` or symlink/hardlink to call directly.
 
@@ -86,11 +86,12 @@ mainsail where python                    :: == which
 
 ### Real applets, not stubs
 
-Each applet implements the common POSIX flags and edge cases. `find` has an expression tree with `-exec`, `-prune`, `-and`/`-or`, parens. `sed` has substitution, addresses, in-place edit, BRE/ERE. `sort` has key fields and separators. `tar` handles `-z`/`-j`/`-xz` compression and traditional + dashed flag forms.
+Each applet implements the common POSIX flags and edge cases. `find` has an expression tree with `-exec`, `-prune`, `-and`/`-or`, parens. `sed` has substitution, addresses, in-place edit, BRE/ERE. `awk` covers BEGIN/END, patterns, ranges, arrays, `gsub`, `printf`, and the standard built-ins. `sort` has key fields and separators. `tar` handles `-z`/`-j`/`-xz` compression and traditional + dashed flag forms.
 
 ```bash
 mainsail find . -name '*.tmp' -delete
 mainsail sed -i 's/foo/bar/g' *.txt
+mainsail awk -F, '{s+=$3} END{print s/NR}' data.csv
 mainsail sort -k 3,3n -t , data.csv
 mainsail tar -czf src.tar.gz src/ --exclude='*.pyc'
 ```
@@ -107,7 +108,7 @@ mainsail gzip -c data.bin | mainsail gunzip > data.bin.copy
 
 ### Cross-platform integrity
 
-Same SHA-256 of `"abc"` (`ba7816bf...015ad`) on Windows and Linux. `tar` archives are interchangeable. Stress harness verifies 23 scenarios across both platforms.
+Same SHA-256 of `"abc"` (`ba7816bf...015ad`) on every supported platform. `tar` archives are interchangeable. Stress harness verifies 23 scenarios on Linux, Windows, and macOS CI runners.
 
 ---
 
@@ -158,7 +159,7 @@ Adding a new applet means dropping a module into `mainsail/applets/` with the fo
 
 ```bash
 pip install -e ".[dev]"            # install with test deps
-python -m pytest -q                # 226 unit tests
+python -m pytest -q                # 268 unit tests
 python scripts/stress.py           # 23-case stress harness
 python scripts/stress.py dist/mainsail.exe --quick   # against frozen binary
 ```
@@ -177,7 +178,7 @@ Output is a single self-contained executable: ~4.5 MB on Windows, ~6 MB on Linux
 
 ```bash
 python build.py --pyz
-# -> dist/mainsail.pyz (~66 KB, runs on any Python 3.8+)
+# -> dist/mainsail.pyz (~80 KB, runs on any Python 3.8+)
 ```
 
 No compilation, no dependencies. Useful for ESXi, exotic architectures, and any host that already has Python.

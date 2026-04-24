@@ -152,7 +152,7 @@
         <div class="container">
             <div class="hero-logo animate"><img src="assets/logo-dark.svg" alt="mainsail"></div>
             <h1 class="hero-tagline animate" style="transition-delay:.1s">Unix utilities, in one binary, anywhere.</h1>
-            <p class="hero-desc animate" style="transition-delay:.2s">51 POSIX tools — ls, cat, grep, sed, awk, tar — bundled into a single ~5 MB executable. Native Windows support without WSL, Cygwin, or git-bash. Five native targets (Linux/Windows × x86_64/ARM64, macOS ARM64) plus a 66 KB portable zipapp for ESXi and restricted environments.</p>
+            <p class="hero-desc animate" style="transition-delay:.2s">51 POSIX tools — ls, cat, grep, sed, awk, tar — bundled into a single ~5 MB executable. Native Windows support without WSL, Cygwin, or git-bash. Five native targets (Linux/Windows × x86_64/ARM64, macOS ARM64) plus a 80 KB portable zipapp for ESXi and restricted environments.</p>
             <div class="hero-ctas animate" style="transition-delay:.3s">
                 <a href="https://github.com/Real-Fruit-Snacks/mainsail/releases/latest" class="btn-primary">Download Latest</a>
                 <a href="https://github.com/Real-Fruit-Snacks/mainsail" class="btn-secondary">View Source</a>
@@ -184,7 +184,7 @@
         <div class="stats animate">
             <div class="stat"><div class="stat-num" data-target="51">0</div><div class="stat-label">Applets</div></div>
             <div class="stat-div"></div>
-            <div class="stat"><div class="stat-num" data-target="226">0</div><div class="stat-label">Tests</div></div>
+            <div class="stat"><div class="stat-num" data-target="268">0</div><div class="stat-label">Tests</div></div>
             <div class="stat-div"></div>
             <div class="stat"><div class="stat-num" data-target="5" data-suffix="MB">0</div><div class="stat-label">Binary</div></div>
             <div class="stat-div"></div>
@@ -225,7 +225,7 @@
                     <p>Binary-safe through <code>cat</code>/<code>tee</code>/<code>gzip</code>. <code>tail -f</code> with rotation detection. <code>xargs -0</code> for paths with backslashes.</p>
                 </div>
                 <div class="bento-card bento-stat animate" style="transition-delay:.1s">
-                    <div class="big" style="color:var(--teal)">226</div>
+                    <div class="big" style="color:var(--teal)">268</div>
                     <div class="label">Unit Tests</div>
                 </div>
                 <div class="bento-card bento-hero animate" style="transition-delay:.18s">
@@ -239,7 +239,7 @@
                 </div>
                 <div class="bento-card animate" style="transition-delay:.34s">
                     <h3 style="color:var(--accent1)">Portable Zipapp</h3>
-                    <p>A 66 KB <code>mainsail.pyz</code> runs anywhere Python 3.8+ is installed — ESXi hosts, exotic architectures, jailbroken routers, restrictive corporate machines. SCP, run, done.</p>
+                    <p>A 80 KB <code>mainsail.pyz</code> runs anywhere Python 3.8+ is installed — ESXi hosts, exotic architectures, jailbroken routers, restrictive corporate machines. SCP, run, done.</p>
                 </div>
                 <div class="bento-card bento-stat animate" style="transition-delay:.42s">
                     <div class="big" style="color:var(--mauve)">5</div>
@@ -400,7 +400,7 @@
 <span class="t-m"># Or a portable zipapp — runs on any Python 3.8+
 # (ESXi, exotic arches, restricted hosts)</span>
 <span class="t-g">$</span> python build.py --pyz
-<span class="t-b">→ dist/mainsail.pyz (~66 KB)</span></pre></div>
+<span class="t-b">→ dist/mainsail.pyz (~80 KB)</span></pre></div>
                 </div>
                 <div class="terminal animate" style="transition-delay:.25s">
                     <div class="terminal-bar"><span class="terminal-dot"></span><span class="terminal-dot"></span><span class="terminal-dot"></span><span class="terminal-label">usage.sh</span></div>
