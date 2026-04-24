@@ -26,6 +26,53 @@ def test_unknown_applet(invoke):
     assert "unknown applet" in err
 
 
+def test_applet_help(invoke):
+    """`pybox ls --help` prints usage with the header and options block."""
+    rc, out, _ = invoke("ls", "--help")
+    assert rc == 0
+    assert "ls - list directory contents" in out
+    assert "Usage: ls" in out
+    assert "-l" in out  # a flag documented in the usage body
+
+
+def test_applet_h_not_help(invoke, workspace):
+    """-h must NOT be intercepted as help; df/du/sort use it for human-readable."""
+    (workspace / "f.txt").write_bytes(b"x" * 2048)
+    rc, out, _ = invoke("du", "-sh", str(workspace))
+    assert rc == 0
+    # Output is actual du output, not help text
+    assert "Usage:" not in out
+
+
+def test_pybox_help_applet(invoke):
+    """`pybox --help ls` is equivalent to `pybox ls --help`."""
+    rc, out, _ = invoke("--help", "ls")
+    assert rc == 0
+    assert "ls - list directory contents" in out
+    assert "Usage: ls" in out
+
+
+def test_applet_help_shows_aliases(invoke):
+    rc, out, _ = invoke("cat", "--help")
+    assert rc == 0
+    assert "Aliases: type" in out
+
+
+def test_help_for_every_applet(invoke):
+    """Every applet in the registry has non-empty help output."""
+    rc, names_out, _ = invoke("--list")
+    assert rc == 0
+    for line in names_out.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        # Lines are like "  <name>   <help>  (aliases: ...)"
+        name = stripped.split()[0]
+        rc_h, out_h, _ = invoke(name, "--help")
+        assert rc_h == 0, f"{name} --help returned {rc_h}"
+        assert f"{name} - " in out_h, f"{name} --help missing header"
+
+
 # echo
 
 def test_echo_basic(invoke):

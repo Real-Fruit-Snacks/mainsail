@@ -4,7 +4,8 @@ import sys
 from pathlib import Path
 
 from pybox import __version__
-from pybox.registry import get_applet, list_applets_with_help, load_all_applets
+from pybox.registry import Applet, get_applet, list_applets_with_help, load_all_applets
+from pybox.usage import USAGE
 
 
 def _program_stem(argv0: str) -> str:
@@ -12,16 +13,28 @@ def _program_stem(argv0: str) -> str:
 
 
 def _print_top_help() -> None:
-    print(f"pybox {__version__} — cross-platform multi-call utility binary")
+    print(f"pybox {__version__} - cross-platform multi-call utility binary")
     print()
     print("Usage:")
     print("  pybox <applet> [args...]")
-    print("  <applet> [args...]      (when installed as hardlink/symlink)")
+    print("  pybox <applet> --help       show help for <applet>")
+    print("  <applet> [args...]          (when installed as hardlink/symlink)")
     print()
     print("Top-level options:")
     print("  --list           list available applets")
     print("  --help, -h       show this help")
     print("  --version        show version")
+
+
+def _print_applet_help(applet: Applet) -> None:
+    print(f"{applet.name} - {applet.help}")
+    body = USAGE.get(applet.name)
+    if body:
+        print()
+        print(body.rstrip("\n"))
+    if applet.aliases:
+        print()
+        print(f"Aliases: {', '.join(applet.aliases)}")
 
 
 def _print_list() -> None:
@@ -44,6 +57,10 @@ def main(argv: list[str] | None = None) -> int:
     # Multi-call mode: argv[0] basename matches a known applet
     applet = get_applet(stem)
     if applet is not None and stem != "pybox":
+        # Intercept --help only; -h is overloaded by many applets (df/du/sort)
+        if len(argv) >= 2 and argv[1] == "--help":
+            _print_applet_help(applet)
+            return 0
         return applet.main([stem, *argv[1:]])
 
     # Wrapper mode: pybox <applet> [args...]
@@ -53,6 +70,12 @@ def main(argv: list[str] | None = None) -> int:
 
     first = argv[1]
     if first in ("--help", "-h"):
+        # "pybox --help <applet>" prints that applet's help
+        if len(argv) >= 3:
+            applet = get_applet(argv[2])
+            if applet is not None:
+                _print_applet_help(applet)
+                return 0
         _print_top_help()
         return 0
     if first == "--version":
@@ -67,4 +90,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"pybox: unknown applet '{first}'", file=sys.stderr)
         print("try 'pybox --list' to see all applets", file=sys.stderr)
         return 1
+    if len(argv) >= 3 and argv[2] == "--help":
+        _print_applet_help(applet)
+        return 0
     return applet.main([first, *argv[2:]])
