@@ -23,6 +23,7 @@ body:
       label: How are you running mainsail?
       options:
         - Frozen binary (dist/mainsail or mainsail.exe)
+        - Portable zipapp (mainsail.pyz)
         - pip install -e . (from source)
         - python -m mainsail (in-tree)
         - Other (describe below)
@@ -33,7 +34,7 @@ body:
     id: os
     attributes:
       label: OS / platform
-      placeholder: "Ubuntu 24.04 x86_64 / Windows 11 / macOS 15 ARM64"
+      placeholder: "Ubuntu 24.04 x86_64 / Windows 11 ARM64 / macOS 15 ARM64 / ESXi 8.0"
     validations:
       required: true
 

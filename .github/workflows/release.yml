@@ -39,7 +39,9 @@ jobs:
           - os: windows-11-arm
             artifact: mainsail-windows-arm64
             ext: ".exe"
-            python_source: hosted
+            # actions/setup-python has no 3.10 arm64 build for Windows,
+            # so fall back to python-build-standalone via uv.
+            python_source: standalone
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -67,8 +69,40 @@ jobs:
           name: ${{ matrix.artifact }}
           path: dist/${{ matrix.artifact }}${{ matrix.ext }}
 
+  # Host-agnostic: a single .pyz zipapp that runs on any Python 3.8+
+  # system. Intended for ESXi, exotic architectures, and restrictive
+  # environments where a native binary isn't viable.
+  zipapp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Build zipapp
+        run: python build.py --pyz
+      - name: Smoke test
+        run: |
+          # GitHub Actions bash runs with set -eo pipefail. Avoid `cmd | head`
+          # (SIGPIPE -> 141) and capture expected-nonzero rc with `|| rc=$?`.
+          python3 dist/mainsail.pyz --version
+          python3 dist/mainsail.pyz --list > list.out
+          test "$(wc -l < list.out)" -ge 40
+          out=$(python3 dist/mainsail.pyz echo "pyz ok")
+          test "$out" = "pyz ok"
+          grepout=$(printf 'foo\nbar\nbaz\n' | python3 dist/mainsail.pyz grep ba)
+          test "$grepout" = "$(printf 'bar\nbaz')"
+          rc=0
+          python3 dist/mainsail.pyz false || rc=$?
+          test "$rc" -eq 1
+          python3 dist/mainsail.pyz true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mainsail-pyz
+          path: dist/mainsail.pyz
+
   release:
-    needs: build
+    needs: [build, zipapp]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     permissions:

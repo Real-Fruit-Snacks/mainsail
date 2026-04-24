@@ -8,6 +8,7 @@
 
 ![Python](https://img.shields.io/badge/language-Python-3776ab.svg)
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Windows%20%7C%20macOS-lightgrey)
+![Arch](https://img.shields.io/badge/arch-x86__64%20%7C%20ARM64-blue)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Tests](https://img.shields.io/badge/tests-226%20passing-brightgreen.svg)
 
@@ -39,11 +40,20 @@ mainsail ls --help
 
 **Or grab a pre-built binary** — no Python required:
 
-- `mainsail-windows-x64.exe`
-- `mainsail-linux-x64`
-- `mainsail-macos-arm64`
+| Platform        | x86_64                      | ARM64                         |
+|-----------------|-----------------------------|-------------------------------|
+| Linux           | `mainsail-linux-x64`        | `mainsail-linux-arm64`        |
+| Windows         | `mainsail-windows-x64.exe`  | `mainsail-windows-arm64.exe`  |
+| macOS           | `mainsail-macos-x64`        | `mainsail-macos-arm64`        |
 
 Drop it anywhere on `PATH` and run.
+
+**Or use the portable zipapp** — `mainsail.pyz` (~66 KB) runs on any host with Python 3.8+, including ESXi, exotic architectures, jailbroken routers, and restrictive corporate machines where installing a native binary isn't practical:
+
+```bash
+scp mainsail.pyz host:/tmp/
+ssh host 'python3 /tmp/mainsail.pyz ls -la'
+```
 
 ---
 
@@ -159,9 +169,18 @@ python build.py
 # -> dist/mainsail (Linux/macOS) or dist/mainsail.exe (Windows)
 ```
 
-Output is a single self-contained executable: ~7 MB on Windows, ~5.5 MB on Linux. Compressed with zstandard. No Python needed at runtime.
+Output is a single self-contained executable: ~4.5 MB on Windows, ~6 MB on Linux. Compressed with zstandard. No Python needed at runtime.
 
-CI matrix builds binaries for Linux x64, macOS arm64, and Windows x64 on every release tag.
+### Building the portable zipapp
+
+```bash
+python build.py --pyz
+# -> dist/mainsail.pyz (~66 KB, runs on any Python 3.8+)
+```
+
+No compilation, no dependencies. Useful for ESXi, exotic architectures, and any host that already has Python.
+
+CI matrix builds **six native binaries** (Linux/Windows/macOS × x86_64/ARM64) plus the portable `mainsail.pyz` on every release tag.
 
 ---
 

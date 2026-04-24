@@ -7,6 +7,28 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-04-23
+
+### Added
+- Portable `mainsail.pyz` zipapp (~66 KB) built with `python build.py --pyz`.
+  Runs on any host with Python 3.8+ — intended for ESXi, exotic
+  architectures, and restrictive environments where a native binary
+  isn't viable.
+- Zipapp smoke test in the release workflow (`--version`, `--list`,
+  stdout round-trip, exit codes).
+- `Portable zipapp (mainsail.pyz)` as a runtime option in the bug
+  report template.
+
+### Fixed
+- Windows ARM64 release build: `actions/setup-python@v5` has no
+  Python 3.10 arm64 build for Windows Enterprise, so the matrix entry
+  now uses python-build-standalone via `astral-sh/setup-uv@v6`
+  (same source as Linux).
+
+### Changed
+- `mainsail.__version__` and `pyproject.toml` bumped to `0.1.5`
+  (previously pinned at `0.1.0` across releases).
+
 ## [0.1.4] - 2026-04-23
 
 ### Added
@@ -55,6 +77,7 @@ Initial release.
 - GitHub Actions CI matrix: Linux / macOS / Windows × Python 3.10–3.13
 - Release workflow that builds and publishes binaries on tag push
 
-[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.5
 [0.1.4]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.4
 [0.1.0]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.0
