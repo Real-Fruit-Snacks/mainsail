@@ -1,0 +1,59 @@
+name: Feature Request
+description: Suggest a new applet, a new flag, or an improvement
+labels: ["enhancement"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion. Please help us evaluate it by answering the prompts below.
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind of request
+      options:
+        - New applet
+        - New flag on an existing applet
+        - Behavior change / bug-adjacent
+        - Build / packaging / CI
+        - Documentation
+    validations:
+      required: true
+
+  - type: input
+    id: applet
+    attributes:
+      label: Applet (if applicable)
+      description: "Which applet does this affect? Leave blank for 'new applet' or build/CI requests."
+      placeholder: "grep"
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: What would you like mainsail to do?
+      placeholder: "Describe the feature in one or two sentences."
+    validations:
+      required: true
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use case
+      description: "Why is this useful? Include a concrete example command or pipeline."
+      placeholder: |
+        $ mainsail grep -P '\d{3}-\d{4}' contacts.txt
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: "What do you do today without this feature? Does GNU/BusyBox handle it?"
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional notes
+      description: "Cross-platform considerations, edge cases, links, etc."

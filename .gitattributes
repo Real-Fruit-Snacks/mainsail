@@ -1,0 +1,23 @@
+# Normalize line endings: force LF on all text so the repo is
+# byte-identical across Linux / macOS / Windows checkouts. Silences
+# the "LF will be replaced by CRLF" warnings on Windows.
+* text=auto eol=lf
+
+# Windows-only script formats must stay CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Treat vendored binary assets explicitly
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.zip binary
+*.gz binary
+*.tar binary

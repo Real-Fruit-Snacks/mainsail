@@ -1,0 +1,83 @@
+name: Bug Report
+description: Report a bug in a mainsail applet or the CLI itself
+labels: ["bug"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please fill out the fields below so we can reproduce the issue.
+
+  - type: input
+    id: version
+    attributes:
+      label: mainsail version
+      description: "Output of `mainsail --version`"
+      placeholder: "mainsail 0.1.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: runtime
+    attributes:
+      label: How are you running mainsail?
+      options:
+        - Frozen binary (dist/mainsail or mainsail.exe)
+        - pip install -e . (from source)
+        - python -m mainsail (in-tree)
+        - Other (describe below)
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: OS / platform
+      placeholder: "Ubuntu 24.04 x86_64 / Windows 11 / macOS 15 ARM64"
+    validations:
+      required: true
+
+  - type: input
+    id: applet
+    attributes:
+      label: Applet involved
+      description: "Which applet exhibits the bug? (e.g. `find`, `sed`, `cli`)"
+      placeholder: "find"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: "Exact commands, with sample input where relevant"
+      placeholder: |
+        1. echo "hello" > test.txt
+        2. mainsail sed 's/hello/world/' test.txt
+        3. ...
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      placeholder: "Describe what you expected to happen"
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: "Include exit code and full stderr if applicable"
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: "Screenshots, strace output, comparison to GNU/BusyBox, etc."
