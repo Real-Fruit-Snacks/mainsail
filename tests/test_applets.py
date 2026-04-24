@@ -1995,11 +1995,13 @@ def test_yes_subprocess(workspace):
         cwd=str(workspace),
     )
     try:
-        t.sleep(0.2)
+        # Allow a generous warmup; Python startup from slow mounts (e.g. WSL
+        # reading /mnt/c) can easily eat ~500ms before yes produces any output.
+        t.sleep(1.5)
     finally:
         proc.terminate()
         try:
-            out, _ = proc.communicate(timeout=2)
+            out, _ = proc.communicate(timeout=3)
         except subprocess.TimeoutExpired:
             proc.kill()
             out, _ = proc.communicate()
