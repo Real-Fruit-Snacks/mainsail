@@ -44,7 +44,9 @@ mainsail ls --help
 |-----------------|-----------------------------|-------------------------------|
 | Linux           | `mainsail-linux-x64`        | `mainsail-linux-arm64`        |
 | Windows         | `mainsail-windows-x64.exe`  | `mainsail-windows-arm64.exe`  |
-| macOS           | `mainsail-macos-x64`        | `mainsail-macos-arm64`        |
+| macOS           | — _(see below)_             | `mainsail-macos-arm64`        |
+
+_Intel Mac support: GitHub's free-tier `macos-13` runner queue is effectively unavailable to this project, so we don't ship a pre-built `mainsail-macos-x64`. Intel Mac users can use the portable **`mainsail.pyz`** (same feature set, needs Python 3.8+) or `pip install -e .` from source._
 
 Drop it anywhere on `PATH` and run.
 
@@ -180,7 +182,7 @@ python build.py --pyz
 
 No compilation, no dependencies. Useful for ESXi, exotic architectures, and any host that already has Python.
 
-CI matrix builds **six native binaries** (Linux/Windows/macOS × x86_64/ARM64) plus the portable `mainsail.pyz` on every release tag.
+CI matrix builds **five native binaries** (Linux x86_64/ARM64, Windows x86_64/ARM64, macOS ARM64) plus the portable `mainsail.pyz` on every release tag.
 
 ---
 

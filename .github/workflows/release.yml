@@ -27,10 +27,12 @@ jobs:
             # On macOS, the hosted Python is leaner than python-build-
             # standalone once Nuitka ingests it into an onefile payload.
             python_source: hosted
-          - os: macos-13
-            artifact: mainsail-macos-x64
-            ext: ""
-            python_source: hosted
+          # NB: macos-13 (Intel) was in the matrix briefly for v0.1.4-0.1.6
+          # but GitHub's free-tier macos-13 queue is effectively unavailable
+          # to this account (30+ min queue times, never dispatched).
+          # Apple stopped shipping Intel Macs in 2023; the ARM64 binary
+          # covers the supported lineup, and Intel-Mac users can use the
+          # portable mainsail.pyz or build from source.
           - os: windows-latest
             artifact: mainsail-windows-x64
             ext: ".exe"

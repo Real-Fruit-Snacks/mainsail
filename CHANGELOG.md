@@ -7,6 +7,25 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-04-23
+
+### Removed
+- `mainsail-macos-x64` (Intel Mac) pre-built binary. GitHub's free-tier
+  `macos-13` runner queue is effectively unavailable to this project
+  (30+ minute queue times across v0.1.4–v0.1.6, never dispatched), so
+  the matrix entry was dropped. Apple stopped shipping Intel Macs in
+  2023 — the ARM64 binary covers the supported lineup, and Intel Mac
+  users can run the portable `mainsail.pyz` (same feature set, needs
+  Python 3.8+) or `pip install -e .` from source.
+
+### Fixed
+- v0.1.7 is the first release since v0.1.3 to actually produce a
+  GitHub Release; v0.1.4 through v0.1.6 were tagged but blocked on the
+  Windows-ARM64 Python 3.10 unavailability (v0.1.4), a Defender
+  file-lock race during Nuitka's `--remove-output` cleanup (v0.1.5),
+  and the `macos-13` queue issue above (v0.1.6). The relevant fixes
+  are included here.
+
 ## [0.1.6] - 2026-04-23
 
 ### Fixed
@@ -88,7 +107,8 @@ Initial release.
 - GitHub Actions CI matrix: Linux / macOS / Windows × Python 3.10–3.13
 - Release workflow that builds and publishes binaries on tag push
 
-[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.6...HEAD
+[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.7...HEAD
+[0.1.7]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.7
 [0.1.6]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.6
 [0.1.5]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.5
 [0.1.4]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.4
