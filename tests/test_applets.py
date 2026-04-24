@@ -2078,3 +2078,348 @@ def test_alias_del_is_rm(invoke, workspace):
     rc, _, _ = invoke("del", "x.txt")
     assert rc == 0
     assert not (workspace / "x.txt").exists()
+
+
+# ─── awk ────────────────────────────────────────────────────────────
+
+def test_awk_field_print(invoke, workspace):
+    (workspace / "f.txt").write_text("hello world\nfoo bar\n")
+    rc, out, _ = invoke("awk", "{print $2, $1}", "f.txt")
+    assert rc == 0
+    assert out == "world hello\nbar foo\n"
+
+
+def test_awk_regex_pattern(invoke, workspace):
+    (workspace / "f.txt").write_text("apple\nbanana\ncherry\n")
+    rc, out, _ = invoke("awk", "/an/", "f.txt")
+    assert rc == 0
+    assert out == "banana\n"
+
+
+def test_awk_nr_equals(invoke, workspace):
+    (workspace / "f.txt").write_text("one\ntwo\nthree\nfour\n")
+    rc, out, _ = invoke("awk", "NR==2", "f.txt")
+    assert rc == 0
+    assert out == "two\n"
+
+
+def test_awk_begin_end(invoke, workspace):
+    (workspace / "f.txt").write_text("1\n2\n3\n4\n5\n")
+    rc, out, _ = invoke(
+        "awk", "BEGIN{s=0} {s+=$1} END{print s, NR}", "f.txt"
+    )
+    assert rc == 0
+    assert out == "15 5\n"
+
+
+def test_awk_dash_F_separator(invoke, workspace):
+    (workspace / "f.txt").write_text("a:b:c\nd:e:f\n")
+    rc, out, _ = invoke("awk", "-F", ":", "{print $2}", "f.txt")
+    assert rc == 0
+    assert out == "b\ne\n"
+
+
+def test_awk_dash_v_var(invoke, workspace):
+    (workspace / "f.txt").write_text("x\n")
+    rc, out, _ = invoke(
+        "awk", "-v", "name=Matt", "-v", "n=3", "{print name, n+1}", "f.txt"
+    )
+    assert rc == 0
+    assert out == "Matt 4\n"
+
+
+def test_awk_printf(invoke, workspace):
+    (workspace / "f.txt").write_text("1 2\n3 4\n")
+    rc, out, _ = invoke(
+        "awk", 'BEGIN{printf "%-5s%s\\n", "lhs", "rhs"} {printf "%-5d%d\\n", $1, $2}', "f.txt"
+    )
+    assert rc == 0
+    assert out == "lhs  rhs\n1    2\n3    4\n"
+
+
+def test_awk_if_else(invoke, workspace):
+    (workspace / "f.txt").write_text("-5\n0\n10\n")
+    rc, out, _ = invoke(
+        "awk",
+        '{if($1>0) print "pos"; else if($1<0) print "neg"; else print "zero"}',
+        "f.txt",
+    )
+    assert rc == 0
+    assert out == "neg\nzero\npos\n"
+
+
+def test_awk_while_loop(invoke, workspace):
+    (workspace / "f.txt").write_text("x\n")
+    rc, out, _ = invoke(
+        "awk", 'BEGIN{i=1; while(i<=3){print i; i++}}', "f.txt"
+    )
+    assert rc == 0
+    assert out == "1\n2\n3\n"
+
+
+def test_awk_for_c_style(invoke, workspace):
+    (workspace / "f.txt").write_text("x\n")
+    rc, out, _ = invoke(
+        "awk", 'BEGIN{for(i=1;i<=3;i++) print i*i}', "f.txt"
+    )
+    assert rc == 0
+    assert out == "1\n4\n9\n"
+
+
+def test_awk_arrays_and_for_in(invoke, workspace):
+    (workspace / "f.txt").write_text("apple\nbanana\napple\ncherry\napple\nbanana\n")
+    rc, out, _ = invoke(
+        "awk", '{c[$1]++} END{for(k in c) print k, c[k]}', "f.txt"
+    )
+    assert rc == 0
+    # for (k in a) order is arbitrary in POSIX, but dict preserves insertion order
+    lines = out.strip().split("\n")
+    assert sorted(lines) == ["apple 3", "banana 2", "cherry 1"]
+
+
+def test_awk_dedupe_oneliner(invoke, workspace):
+    (workspace / "f.txt").write_text("a\nb\na\nc\nb\na\n")
+    rc, out, _ = invoke("awk", "!seen[$0]++", "f.txt")
+    assert rc == 0
+    assert out == "a\nb\nc\n"
+
+
+def test_awk_substr(invoke, workspace):
+    (workspace / "f.txt").write_text("hello\n")
+    rc, out, _ = invoke("awk", '{print substr($0, 2, 3)}', "f.txt")
+    assert rc == 0
+    assert out == "ell\n"
+
+
+def test_awk_length_of_string(invoke, workspace):
+    (workspace / "f.txt").write_text("hello world\n")
+    rc, out, _ = invoke("awk", '{print length($0), length($1)}', "f.txt")
+    assert rc == 0
+    assert out == "11 5\n"
+
+
+def test_awk_length_of_array(invoke, workspace):
+    (workspace / "f.txt").write_text("x\n")
+    rc, out, _ = invoke(
+        "awk", 'BEGIN{a[1]=1; a[2]=2; a[3]=3; print length(a)}', "f.txt"
+    )
+    assert rc == 0
+    assert out == "3\n"
+
+
+def test_awk_gsub(invoke, workspace):
+    (workspace / "f.txt").write_text("foo bar baz\n")
+    rc, out, _ = invoke("awk", '{gsub(/b./, "X"); print}', "f.txt")
+    assert rc == 0
+    # /b./ matches "ba" in both "bar" and "baz"
+    assert out == "foo Xr Xz\n"
+
+
+def test_awk_sub_count_returned(invoke, workspace):
+    (workspace / "f.txt").write_text("abcabc\n")
+    rc, out, _ = invoke("awk", '{n=sub(/b/, "B"); print n, $0}', "f.txt")
+    assert rc == 0
+    assert out == "1 aBcabc\n"
+
+
+def test_awk_gsub_count_returned(invoke, workspace):
+    (workspace / "f.txt").write_text("abcabc\n")
+    rc, out, _ = invoke("awk", '{n=gsub(/b/, "B"); print n, $0}', "f.txt")
+    assert rc == 0
+    assert out == "2 aBcaBc\n"
+
+
+def test_awk_split(invoke, workspace):
+    (workspace / "f.txt").write_text("x\n")
+    rc, out, _ = invoke(
+        "awk", 'BEGIN{n=split("a,b,c", a, ","); print n, a[1], a[2], a[3]}', "f.txt"
+    )
+    assert rc == 0
+    assert out == "3 a b c\n"
+
+
+def test_awk_match_function(invoke, workspace):
+    (workspace / "f.txt").write_text("hello123world\n")
+    rc, out, _ = invoke(
+        "awk", '{match($0, /[0-9]+/); print RSTART, RLENGTH}', "f.txt"
+    )
+    assert rc == 0
+    assert out == "6 3\n"
+
+
+def test_awk_index(invoke, workspace):
+    (workspace / "f.txt").write_text("hello world\n")
+    rc, out, _ = invoke("awk", '{print index($0, "world")}', "f.txt")
+    assert rc == 0
+    assert out == "7\n"
+
+
+def test_awk_toupper_tolower(invoke, workspace):
+    (workspace / "f.txt").write_text("Hello World\n")
+    rc, out, _ = invoke("awk", '{print toupper($1), tolower($2)}', "f.txt")
+    assert rc == 0
+    assert out == "HELLO world\n"
+
+
+def test_awk_sprintf(invoke, workspace):
+    (workspace / "f.txt").write_text("x\n")
+    rc, out, _ = invoke(
+        "awk", 'BEGIN{s=sprintf("[%5d]", 42); print s}', "f.txt"
+    )
+    assert rc == 0
+    assert out == "[   42]\n"
+
+
+def test_awk_range_pattern(invoke, workspace):
+    (workspace / "f.txt").write_text("a\nSTART\n1\n2\nEND\nb\n")
+    rc, out, _ = invoke("awk", "/START/,/END/", "f.txt")
+    assert rc == 0
+    assert out == "START\n1\n2\nEND\n"
+
+
+def test_awk_nf_modification(invoke, workspace):
+    (workspace / "f.txt").write_text("a b c d e\n")
+    rc, out, _ = invoke("awk", '{NF=3; print}', "f.txt")
+    assert rc == 0
+    assert out == "a b c\n"
+
+
+def test_awk_field_assignment_rebuilds(invoke, workspace):
+    (workspace / "f.txt").write_text("one two three\n")
+    rc, out, _ = invoke("awk", '{$2="TWO"; print}', "f.txt")
+    assert rc == 0
+    assert out == "one TWO three\n"
+
+
+def test_awk_exit_with_code(invoke, workspace):
+    (workspace / "f.txt").write_text("x\n")
+    rc, _, _ = invoke("awk", '{exit 7}', "f.txt")
+    assert rc == 7
+
+
+def test_awk_next_skips_rest(invoke, workspace):
+    (workspace / "f.txt").write_text("1\n2\n3\n")
+    rc, out, _ = invoke(
+        "awk", '/2/ {next} {print}', "f.txt"
+    )
+    assert rc == 0
+    assert out == "1\n3\n"
+
+
+def test_awk_delete_array_element(invoke, workspace):
+    (workspace / "f.txt").write_text("x\n")
+    rc, out, _ = invoke(
+        "awk",
+        'BEGIN{a["x"]=1; a["y"]=2; delete a["x"]; for(k in a) print k, a[k]}',
+        "f.txt",
+    )
+    assert rc == 0
+    assert out == "y 2\n"
+
+
+def test_awk_in_operator(invoke, workspace):
+    (workspace / "f.txt").write_text("x\n")
+    rc, out, _ = invoke(
+        "awk",
+        'BEGIN{a["x"]=1; print ("x" in a), ("y" in a)}',
+        "f.txt",
+    )
+    assert rc == 0
+    assert out == "1 0\n"
+
+
+def test_awk_ternary(invoke, workspace):
+    (workspace / "f.txt").write_text("0\n5\n")
+    rc, out, _ = invoke(
+        "awk", '{print ($1>0 ? "big" : "small")}', "f.txt"
+    )
+    assert rc == 0
+    assert out == "small\nbig\n"
+
+
+def test_awk_string_concat(invoke, workspace):
+    (workspace / "f.txt").write_text("x\n")
+    rc, out, _ = invoke(
+        "awk", 'BEGIN{print "a" "b" 1+2 "!"}', "f.txt"
+    )
+    assert rc == 0
+    assert out == "ab3!\n"
+
+
+def test_awk_multi_line_program(invoke, workspace):
+    (workspace / "f.txt").write_text("1\n2\n3\n")
+    rc, out, _ = invoke(
+        "awk",
+        "BEGIN { t=0 }\n{ t += $1 }\nEND { print t }",
+        "f.txt",
+    )
+    assert rc == 0
+    assert out == "6\n"
+
+
+def test_awk_filename_builtin(invoke, workspace):
+    (workspace / "f.txt").write_text("x\n")
+    (workspace / "g.txt").write_text("y\n")
+    rc, out, _ = invoke("awk", '{print FILENAME, $0}', "f.txt", "g.txt")
+    assert rc == 0
+    assert "f.txt x" in out
+    assert "g.txt y" in out
+
+
+def test_awk_fnr_resets(invoke, workspace):
+    (workspace / "f.txt").write_text("a\nb\n")
+    (workspace / "g.txt").write_text("c\n")
+    rc, out, _ = invoke("awk", '{print FNR, NR, $0}', "f.txt", "g.txt")
+    assert rc == 0
+    assert out == "1 1 a\n2 2 b\n1 3 c\n"
+
+
+def test_awk_increment_postfix(invoke, workspace):
+    (workspace / "f.txt").write_text("x\n")
+    rc, out, _ = invoke("awk", 'BEGIN{i=3; print i++, i}', "f.txt")
+    assert rc == 0
+    assert out == "3 4\n"
+
+
+def test_awk_increment_prefix(invoke, workspace):
+    (workspace / "f.txt").write_text("x\n")
+    rc, out, _ = invoke("awk", 'BEGIN{i=3; print ++i, i}', "f.txt")
+    assert rc == 0
+    assert out == "4 4\n"
+
+
+def test_awk_compound_assign(invoke, workspace):
+    (workspace / "f.txt").write_text("x\n")
+    rc, out, _ = invoke(
+        "awk", 'BEGIN{x=10; x+=5; x*=2; print x}', "f.txt"
+    )
+    assert rc == 0
+    assert out == "30\n"
+
+
+def test_awk_match_operators(invoke, workspace):
+    (workspace / "f.txt").write_text("foo\nbar\nbaz\n")
+    rc, out, _ = invoke("awk", '$0 ~ /^b/', "f.txt")
+    assert rc == 0
+    assert out == "bar\nbaz\n"
+
+
+def test_awk_unknown_option_errors(invoke, workspace):
+    rc, _, errtxt = invoke("awk", "-Z", "foo")
+    assert rc == 2
+    assert "unknown option" in errtxt
+
+
+def test_awk_parse_error_returns_2(invoke, workspace):
+    (workspace / "f.txt").write_text("x\n")
+    rc, _, errtxt = invoke("awk", "{(+}", "f.txt")
+    assert rc == 2
+    assert "parse" in errtxt
+
+
+def test_awk_f_script_file(invoke, workspace):
+    (workspace / "script.awk").write_text('{print $1*2}\n')
+    (workspace / "f.txt").write_text("3\n5\n")
+    rc, out, _ = invoke("awk", "-f", "script.awk", "f.txt")
+    assert rc == 0
+    assert out == "6\n10\n"

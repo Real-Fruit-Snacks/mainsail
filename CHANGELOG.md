@@ -7,6 +7,27 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-04-24
+
+### Added
+- `awk` applet — a practical POSIX-awk subset built on stdlib only.
+  Covers BEGIN/END, /regex/ and expression patterns, range patterns,
+  `print`/`printf` with full format specifiers, control flow
+  (if/else, while, do/while, for, for-in), associative arrays,
+  `delete`, `in`, field manipulation, NR/NF/FS/OFS/ORS/RS/FILENAME,
+  `length`/`substr`/`index`/`split`/`sub`/`gsub`/`match`/
+  `toupper`/`tolower`/`sprintf`/`int`, and `system`.
+  Not implemented: user-defined functions, getline, strnum semantics
+  for string-literal comparisons (documented limitation).
+  42 new test cases bring the suite to **268 passing**.
+
+### Fixed
+- Linux x64 binary now builds on `ubuntu-22.04` (glibc 2.35) instead
+  of `ubuntu-latest` (24.04, glibc 2.39). This lowers the runtime
+  glibc floor so the binary runs on Ubuntu 22.04 LTS, Debian 12, RHEL 9,
+  and WSL defaults — previous v0.1.7 binary required GLIBC 2.38 and
+  refused to start on anything older.
+
 ## [0.1.7] - 2026-04-23
 
 ### Removed
@@ -107,7 +128,8 @@ Initial release.
 - GitHub Actions CI matrix: Linux / macOS / Windows × Python 3.10–3.13
 - Release workflow that builds and publishes binaries on tag push
 
-[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.7...HEAD
+[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.8...HEAD
+[0.1.8]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.8
 [0.1.7]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.7
 [0.1.6]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.6
 [0.1.5]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.5

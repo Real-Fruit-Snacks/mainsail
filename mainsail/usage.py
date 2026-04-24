@@ -288,6 +288,41 @@ Examples:
   tr -d '\\r'            strip carriage returns
   tr -cd '[:alnum:]'    keep only alphanumeric
 """,
+    "awk": """\
+Usage: awk [-F sep] [-v var=val]... [-f script | 'program'] [file...]
+
+Pattern-scanning and processing language. Each input record (default:
+line) is matched against PATTERNs; matching records run the associated
+ACTION block. With no file, read stdin.
+
+Options:
+  -F SEP            field separator (single char, or regex if multi-char)
+  -v var=val        preset a variable before the program runs
+  -f FILE           read the program from FILE instead of the command line
+
+Program structure:
+  BEGIN { ... }                  run once before reading any input
+  /regex/ { action }             run action for records matching regex
+  expr { action }                run action for records where expr is true
+  pat1, pat2 { action }          range: activate on pat1 through pat2
+  END { ... }                    run once after all input is read
+
+Built-in variables:
+  NR FNR NF FS OFS ORS RS SUBSEP FILENAME OFMT CONVFMT
+
+Built-in functions:
+  length, substr, index, split, sub, gsub, match, toupper, tolower,
+  sprintf, int, sqrt, log, exp, sin, cos, atan2, rand, srand, system
+
+Examples:
+  awk '{print $2}' data.txt            # second field of each line
+  awk -F: '{print $1}' /etc/passwd     # colon-separated fields
+  awk '/error/' log.txt                # grep-like filter
+  awk '{s+=$1} END{print s/NR}' data   # column mean
+  awk '!seen[$0]++' f.txt              # de-duplicate, preserve order
+
+Not implemented: user-defined functions, getline.
+""",
     "sed": """\
 Usage: sed [OPTION]... SCRIPT [FILE...]
 

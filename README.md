@@ -10,11 +10,11 @@
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Windows%20%7C%20macOS-lightgrey)
 ![Arch](https://img.shields.io/badge/arch-x86__64%20%7C%20ARM64-blue)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Tests](https://img.shields.io/badge/tests-226%20passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-268%20passing-brightgreen.svg)
 
 **Single-file BusyBox-like multi-call binary, in Python.**
 
-50 POSIX utilities — `ls`, `cat`, `grep`, `sed`, `tar`, and friends — bundled into a ~5 MB executable. Native Windows support without WSL, Cygwin, or git-bash. Six native targets (Linux/Windows/macOS × x86_64/ARM64) plus a 66 KB portable zipapp that runs anywhere Python 3.8+ is installed — including ESXi.
+51 POSIX utilities — `ls`, `cat`, `grep`, `sed`, `awk`, `tar`, and friends — bundled into a ~5 MB executable. Native Windows support without WSL, Cygwin, or git-bash. Six native targets (Linux/Windows/macOS × x86_64/ARM64) plus a 66 KB portable zipapp that runs anywhere Python 3.8+ is installed — including ESXi.
 
 </div>
 
@@ -116,7 +116,7 @@ Same SHA-256 of `"abc"` (`ba7816bf...015ad`) on Windows and Linux. `tar` archive
 | Category    | Applets |
 |-------------|---------|
 | File ops    | `ls` `cp` `mv` `rm` `mkdir` `touch` `find` `chmod` `ln` `stat` |
-| Text        | `cat` `grep` `head` `tail` `wc` `sort` `uniq` `cut` `tr` `sed` `tee` `xargs` `printf` `echo` |
+| Text        | `cat` `grep` `head` `tail` `wc` `sort` `uniq` `cut` `tr` `sed` `awk` `tee` `xargs` `printf` `echo` |
 | Hashing     | `md5sum` `sha1sum` `sha256sum` `sha512sum` |
 | Archives    | `tar` `gzip` `gunzip` `zip` `unzip` |
 | Filesystem  | `du` `df` |
@@ -140,7 +140,7 @@ mainsail/
 └── applets/         # one module per applet, all implement
     ├── ls.py        #   NAME, ALIASES, HELP, main(argv) -> int
     ├── cat.py
-    └── ...          # 50 modules total
+    └── ...          # 51 modules total
 ```
 
 **Four-layer flow:**
