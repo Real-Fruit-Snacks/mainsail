@@ -390,7 +390,7 @@
 <span class="t-g">$</span> cd mainsail && pip install -e .
 
 <span class="t-g">$</span> mainsail --version
-<span class="t-b">mainsail 0.1.8</span>
+<span class="t-b">mainsail 0.1.9</span>
 
 <span class="t-m"># Or freeze a standalone binary</span>
 <span class="t-g">$</span> pip install "Nuitka[onefile]"
@@ -400,7 +400,12 @@
 <span class="t-m"># Or a portable zipapp — runs on any Python 3.8+
 # (ESXi, exotic arches, restricted hosts)</span>
 <span class="t-g">$</span> python build.py --pyz
-<span class="t-b">→ dist/mainsail.pyz (~80 KB)</span></pre></div>
+<span class="t-b">→ dist/mainsail.pyz (~80 KB)</span>
+
+<span class="t-m"># Or a custom subset — pick exactly the applets
+# you want; presets: slim, minimal</span>
+<span class="t-g">$</span> python build.py --pyz --applets ls,cat,grep,sed,awk
+<span class="t-b">→ dist/mainsail-custom.pyz (~18 KB)</span></pre></div>
                 </div>
                 <div class="terminal animate" style="transition-delay:.25s">
                     <div class="terminal-bar"><span class="terminal-dot"></span><span class="terminal-dot"></span><span class="terminal-dot"></span><span class="terminal-label">usage.sh</span></div>

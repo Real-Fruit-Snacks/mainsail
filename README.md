@@ -50,12 +50,24 @@ _Intel Mac support: GitHub's free-tier `macos-13` runner queue is effectively un
 
 Drop it anywhere on `PATH` and run.
 
-**Or use the portable zipapp** — `mainsail.pyz` (~80 KB) runs on any host with Python 3.8+, including ESXi, exotic architectures, jailbroken routers, and restrictive corporate machines where installing a native binary isn't practical:
+**Slim variants** — every native binary above is also shipped as `…-slim` (e.g. `mainsail-linux-x64-slim`). Slim drops the archive (`tar`, `gzip`, `gunzip`, `zip`, `unzip`) and hashing (`md5sum`, `sha*sum`) applets. Nuitka-binary savings are modest (~3 %) since the Python runtime dominates the payload — prefer slim only if you truly need fewer utilities.
+
+**Or use the portable zipapp** — `mainsail.pyz` (~80 KB full, ~68 KB slim) runs on any host with Python 3.8+, including ESXi, exotic architectures, jailbroken routers, and restrictive corporate machines where installing a native binary isn't practical:
 
 ```bash
 scp mainsail.pyz host:/tmp/
 ssh host 'python3 /tmp/mainsail.pyz ls -la'
 ```
+
+**Or build your own custom subset** — pick exactly the applets you want:
+
+```bash
+python build.py --applets ls,cat,grep,sed,awk        # Nuitka binary
+python build.py --pyz --applets ls,cat,grep,sed,awk  # zipapp
+python build.py --list-presets                       # show slim/minimal
+```
+
+For a zipapp, a 5-applet custom build is well under 20 KB.
 
 ---
 
@@ -183,7 +195,21 @@ python build.py --pyz
 
 No compilation, no dependencies. Useful for ESXi, exotic architectures, and any host that already has Python.
 
-CI matrix builds **five native binaries** (Linux x86_64/ARM64, Windows x86_64/ARM64, macOS ARM64) plus the portable `mainsail.pyz` on every release tag.
+### Custom applet subsets
+
+Trim the build to just the applets you want:
+
+```bash
+python build.py --preset slim                           # 39 applets, no archives/hashing
+python build.py --preset minimal                        # 18 applets, scripting essentials
+python build.py --applets ls,cat,grep,sed,awk           # hand-picked
+python build.py --pyz --applets ls,cat,grep,sed,awk     # same but zipapp
+python build.py --list-presets                          # see what's in each
+```
+
+Non-full builds land as `dist/mainsail-<suffix>` (or `.exe`, or `.pyz`). Savings are meaningful for the zipapp (44% smaller for minimal) but modest for the Nuitka binary (~3–5%) because the Python runtime is the bulk of the payload.
+
+CI matrix builds **ten native binaries** (five full, five slim) plus **two zipapps** (`mainsail.pyz` full and `mainsail-slim.pyz`) on every release tag.
 
 ---
 

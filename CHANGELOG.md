@@ -7,6 +7,24 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-04-24
+
+### Added
+- Custom applet subsets in `build.py`:
+  - `--preset slim` — 39 applets (drops archives + hashing + disk stats)
+  - `--preset minimal` — 18 applets (scripting essentials)
+  - `--applets ls,cat,grep,awk` — hand-picked set
+  - `--list-presets` — enumerate preset contents
+  Non-full builds land as `dist/mainsail-<suffix>` with matching
+  `.exe`/`.pyz` extensions. Release workflow now ships **ten native
+  binaries** (5 full + 5 slim) and **two zipapps** (`mainsail.pyz` and
+  `mainsail-slim.pyz`).
+
+### Notes
+- Nuitka binary savings from trimming applets are modest (~3 %) since
+  the Python runtime dominates the onefile payload. Zipapp savings are
+  meaningful: minimal drops ~44 % (80 KB → 45 KB).
+
 ## [0.1.8] - 2026-04-24
 
 ### Added
@@ -128,7 +146,8 @@ Initial release.
 - GitHub Actions CI matrix: Linux / macOS / Windows × Python 3.10–3.13
 - Release workflow that builds and publishes binaries on tag push
 
-[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.8...HEAD
+[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.9...HEAD
+[0.1.9]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.9
 [0.1.8]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.8
 [0.1.7]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.7
 [0.1.6]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.6

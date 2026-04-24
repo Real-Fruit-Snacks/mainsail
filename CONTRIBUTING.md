@@ -46,9 +46,24 @@ The portable `mainsail.pyz` is a stdlib-only build (no Nuitka), useful
 for quick packaging checks:
 
 ```bash
-python build.py --pyz            # -> dist/mainsail.pyz (~66 KB)
+python build.py --pyz            # -> dist/mainsail.pyz (~80 KB)
 python3 dist/mainsail.pyz --version
 ```
+
+### Custom subsets
+
+Build a smaller binary/zipapp with only the applets you need:
+
+```bash
+python build.py --preset slim              # 39 applets, no archives/hashing
+python build.py --preset minimal           # 18 applets, scripting essentials
+python build.py --applets ls,cat,grep,awk  # hand-picked set
+python build.py --list-presets             # show preset contents
+```
+
+Savings are real for the zipapp (minimal is ~44 % smaller) but modest
+for the Nuitka binary (~3 %) — the Python runtime dominates. Non-full
+builds land as `dist/mainsail-<suffix>` (binary, `.exe`, or `.pyz`).
 
 The zipapp uses the same code path as `python -m mainsail`, so it's not
 a substitute for exercising a real Nuitka binary — but it is a fast way
