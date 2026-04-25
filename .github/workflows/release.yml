@@ -175,11 +175,24 @@ jobs:
   # `continue-on-error: true` so a static build hiccup doesn't block the
   # release; the dynamic glibc binaries from the `build` job above are
   # always shipped.
-  # ARM64-static is intentionally absent: GitHub doesn't support
-  # JavaScript actions (e.g. actions/checkout) inside Alpine containers
-  # on Linux ARM64 runners — only x64. Until that changes, ARM64 users
-  # can use the dynamic glibc binary or build static locally on Alpine.
-  build-static:
+  # ── Linux x64 musl variant ──────────────────────────────────────────
+  # Built inside Alpine 3.19 against musl libc instead of glibc. Runs on
+  # Alpine, distroless containers with musl, and any musl-libc Linux
+  # system. Will NOT run on glibc-only systems — use the dynamic glibc
+  # binary above for those.
+  #
+  # Why not "fully static"?  CFLAGS=-static / LDFLAGS=-static *did* work
+  # for the bootstrap shim, but Python rejects it at runtime with
+  # "ImportError: Dynamic loading not supported" — a fully-static Python
+  # interpreter can't dlopen() C extension modules. Producing a single
+  # truly static Python binary requires baking every extension into
+  # libpython at compile time, which python-build-standalone doesn't
+  # ship and isn't worth the maintenance burden.
+  #
+  # ARM64 musl is intentionally absent: GitHub doesn't support Node.js
+  # actions (e.g. actions/checkout) inside Alpine containers on Linux
+  # ARM64 runners — only x64.
+  build-musl:
     runs-on: ubuntu-22.04
     container:
       image: alpine:3.19
@@ -198,49 +211,49 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install Nuitka
         run: pip3 install --break-system-packages "Nuitka[onefile]"
-      - name: Build (static, full preset)
-        env:
-          # Force the Nuitka bootstrap and onefile shim to link
-          # statically against musl (no /lib/ld-musl-x86_64.so.1
-          # dependency at runtime). Nuitka's internal scons picks
-          # these up when invoking gcc.
-          CFLAGS: "-static"
-          LDFLAGS: "-static"
+      - name: Build (musl, full preset)
+        # Note: --static-libpython=yes still helps (bakes libpython into
+        # the bootstrap; smaller payload). The bootstrap itself remains
+        # dynamically linked against musl libc — that's fine, it's the
+        # whole point of this variant.
         run: python3 build.py --static --preset full
-      - name: Verify static linkage
+      - name: Verify musl-only linkage
         shell: bash
         run: |
-          # `ldd` on a static ELF often exits non-zero with "not a
-          # dynamic executable" — capture output to a variable so the
-          # pipeline doesn't trip set -eo pipefail. Also avoid `file`,
-          # which Alpine doesn't ship by default.
           deps=$(ldd dist/mainsail 2>&1 || true)
           echo "── ldd output ──"
           echo "$deps"
           echo "── verdict ──"
-          if echo "$deps" | grep -qE "=> /"; then
-            echo "FAIL: binary has dynamic library dependencies."
+          # Allow exactly the musl libc / loader. Anything else (libssl,
+          # libffi, libz, etc.) means we missed an --include-package
+          # somewhere and the binary won't be portable.
+          non_musl=$(echo "$deps" \
+            | grep -E "=> /" \
+            | grep -v "musl" || true)
+          if [ -n "$non_musl" ]; then
+            echo "FAIL: non-musl dynamic deps:"
+            echo "$non_musl"
             exit 1
           fi
-          echo "OK: no dynamic library dependencies."
+          echo "OK: only musl libc / loader."
       - name: Smoke test
         shell: bash
         run: |
           ./dist/mainsail --version
           ./dist/mainsail --list > list.out
           test "$(wc -l < list.out)" -ge 40
-          out=$(./dist/mainsail echo "static ok")
-          test "$out" = "static ok"
+          out=$(./dist/mainsail echo "musl ok")
+          test "$out" = "musl ok"
       - name: Rename
         shell: bash
-        run: mv dist/mainsail dist/mainsail-linux-x64-static
+        run: mv dist/mainsail dist/mainsail-linux-x64-musl
       - uses: actions/upload-artifact@v4
         with:
-          name: mainsail-linux-x64-static
-          path: dist/mainsail-linux-x64-static
+          name: mainsail-linux-x64-musl
+          path: dist/mainsail-linux-x64-musl
 
   release:
-    needs: [build, zipapp, build-static]
+    needs: [build, zipapp, build-musl]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     permissions:

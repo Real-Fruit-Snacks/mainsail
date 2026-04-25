@@ -7,6 +7,26 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.14] - 2026-04-25
+
+### Changed
+- Renamed the Alpine-built artifact from `mainsail-linux-x64-static`
+  to `mainsail-linux-x64-musl`, and removed the `-static` LDFLAGS
+  experiment. Honest naming: it's a musl-linked binary that runs on
+  Alpine and distroless musl containers — not a fully-static ELF.
+
+  Why the pivot: `LDFLAGS=-static` *did* link the bootstrap shim
+  statically, but Python rejects it at runtime with
+  `ImportError: Dynamic loading not supported` — a fully-static Python
+  interpreter can't `dlopen()` C extension modules. A truly self-
+  contained Python binary needs every extension baked into `libpython`
+  at compile time, which `python-build-standalone` doesn't ship and
+  isn't worth the maintenance burden.
+
+  Practical upshot: glibc users keep using the dynamic glibc binary;
+  Alpine / distroless musl users get `-musl`; everyone else gets the
+  portable `mainsail.pyz`.
+
 ## [0.1.13] - 2026-04-25
 
 ### Fixed
@@ -204,7 +224,8 @@ Initial release.
 - GitHub Actions CI matrix: Linux / macOS / Windows × Python 3.10–3.13
 - Release workflow that builds and publishes binaries on tag push
 
-[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.13...HEAD
+[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.14...HEAD
+[0.1.14]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.14
 [0.1.13]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.13
 [0.1.12]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.12
 [0.1.11]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.11
