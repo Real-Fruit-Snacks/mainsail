@@ -10,11 +10,11 @@
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Windows%20%7C%20macOS-lightgrey)
 ![Arch](https://img.shields.io/badge/arch-x86__64%20%7C%20ARM64-blue)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Tests](https://img.shields.io/badge/tests-337%20passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-361%20passing-brightgreen.svg)
 
 **Single-file BusyBox-like multi-call binary, in Python.**
 
-**66 utilities** — the POSIX coreutils (`ls`, `cat`, `grep`, `sed`, `awk`, `tar`, …) plus a real `jq` for JSON, an HTTP client (`http`), a DNS resolver (`dig`), and the parity gap-fillers BusyBox users miss (`tac`, `rev`, `nl`, `paste`, `split`, `cmp`, `comm`, `expand`, `unexpand`, `mktemp`, `truncate`, `getopt`). Bundled into a ~5 MB executable. Native Windows support without WSL, Cygwin, or git-bash. Six native binaries (glibc Linux × x86_64/ARM64, Windows × x86_64/ARM64, macOS ARM64, Alpine/musl Linux x64) plus an ~90 KB portable zipapp that runs anywhere Python 3.8+ is installed — including ESXi.
+**73 utilities** — the POSIX coreutils (`ls`, `cat`, `grep`, `sed`, `awk`, `tar`, …) plus a real `jq` for JSON, an HTTP client (`http`), a DNS resolver (`dig`), a TCP `nc`, and the parity gap-fillers BusyBox users miss (`tac`, `rev`, `nl`, `paste`, `split`, `cmp`, `comm`, `expand`, `unexpand`, `mktemp`, `truncate`, `getopt`, `dd`, `od`, `hexdump`, `diff`, `join`, `fmt`). Bundled into a ~5 MB executable. Native Windows support without WSL, Cygwin, or git-bash. Six native binaries (glibc Linux × x86_64/ARM64, Windows × x86_64/ARM64, macOS ARM64, Alpine/musl Linux x64) plus an ~90 KB portable zipapp that runs anywhere Python 3.8+ is installed — including ESXi.
 
 [Download Latest](https://github.com/Real-Fruit-Snacks/mainsail/releases/latest)
 &nbsp;·&nbsp;
@@ -105,9 +105,9 @@ Savings are real for the zipapp (minimal drops it from 80 KB to 45 KB) but modes
 
 ## Features
 
-### One binary, sixty-six utilities
+### One binary, seventy-three utilities
 
-Every common POSIX tool you'd reach for in a shell pipeline — plus `jq` for JSON, `http` for HTTP, and `dig` for DNS. Dispatch via `mainsail <applet>` or symlink/hardlink to call the applet directly.
+Every common POSIX tool you'd reach for in a shell pipeline — plus `jq` for JSON, `http` for HTTP, `dig` for DNS, `nc` for TCP, and the BusyBox parity gap-fillers (`dd`, `od`, `hexdump`, `diff`, `join`, `fmt`, …). Dispatch via `mainsail <applet>` or symlink/hardlink to call the applet directly.
 
 ```bash
 mainsail ls -la                          # GNU-style flags
@@ -172,10 +172,10 @@ Same SHA-256 of `"abc"` (`ba7816bf…015ad`) on every supported platform. `tar` 
 
 | Category    | Applets |
 |-------------|---------|
-| File ops    | `ls` `cp` `mv` `rm` `mkdir` `touch` `find` `chmod` `ln` `stat` `truncate` `mktemp` |
-| Text        | `cat` `tac` `rev` `grep` `head` `tail` `wc` `nl` `sort` `uniq` `cut` `paste` `tr` `sed` `awk` `tee` `xargs` `printf` `echo` `expand` `unexpand` `split` `cmp` `comm` |
+| File ops    | `ls` `cp` `mv` `rm` `mkdir` `touch` `find` `chmod` `ln` `stat` `truncate` `mktemp` `dd` |
+| Text        | `cat` `tac` `rev` `grep` `head` `tail` `wc` `nl` `sort` `uniq` `cut` `paste` `tr` `sed` `awk` `tee` `xargs` `printf` `echo` `expand` `unexpand` `split` `cmp` `comm` `diff` `join` `fmt` `od` `hexdump` |
 | **JSON**    | **`jq`** _(practical subset: pipes, filters, select/map/sort_by, object & array constructors, 40+ built-in functions)_ |
-| **Network** | **`http`** _(curl-style GET/POST with headers, body, JSON, redirects)_ • **`dig`** _(DNS A/AAAA/MX/TXT/CNAME/NS/SOA/PTR via direct UDP queries)_ |
+| **Network** | **`http`** _(curl-style GET/POST with headers, body, JSON, redirects)_ • **`dig`** _(DNS A/AAAA/MX/TXT/CNAME/NS/SOA/PTR via direct UDP queries)_ • **`nc`** _(TCP netcat: connect, listen, port-scan)_ |
 | Hashing     | `md5sum` `sha1sum` `sha256sum` `sha512sum` |
 | Archives    | `tar` `gzip` `gunzip` `zip` `unzip` |
 | Filesystem  | `du` `df` |

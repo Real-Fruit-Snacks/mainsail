@@ -896,4 +896,119 @@ Not implemented: user-defined functions (def), variable bindings
 format strings (@csv, @json, @sh), regex functions (test, match,
 capture, scan, sub, gsub).
 """,
+    # ---- v0.2.1 additions: more parity + nc -------------------------------
+    "dd": """\
+Usage: dd [OPERAND]...
+
+Convert and copy a file. Operands are key=value pairs.
+
+  if=FILE       read from FILE (default: stdin)
+  of=FILE       write to FILE (default: stdout)
+  bs=N          block size in bytes (default 512); suffix K M G T P
+  ibs=N / obs=N input/output block size (override bs)
+  count=N       copy at most N input blocks
+  skip=N        skip N input blocks
+  seek=N        seek N output blocks before writing
+  conv=LIST     comma-separated: notrunc, sync, fdatasync, fsync,
+                lcase, ucase, swab, noerror, excl, nocreat
+  status=LEVEL  none, noxfer, progress, default
+""",
+    "od": """\
+Usage: od [OPTION]... [FILE...]
+
+Dump FILE(s) (or stdin) in octal (default) and other formats.
+
+Options:
+  -c                       characters with backslash escapes
+  -d                       unsigned decimal (1-byte)
+  -o                       octal (1-byte)
+  -x                       hex (1-byte)
+  -A {d,o,x,n}             address radix (n suppresses the address)
+  -An / -Ad / -Ao / -Ax    same, attached form
+  -j N, --skip-bytes=N     skip N bytes
+  -N N, --read-bytes=N     read at most N bytes
+  -w N, --width=N          bytes per line (default 16)
+  -v                       always show every byte (we never collapse)
+""",
+    "hexdump": """\
+Usage: hexdump [OPTION]... [FILE...]
+
+Default output: 16 bytes per line, grouped as 2-byte little-endian words.
+
+Options:
+  -C, --canonical    canonical hex + ASCII layout (most-used)
+  -b                 1-byte octal
+  -c                 1-byte char (with backslash escapes)
+  -d                 2-byte unsigned decimal
+  -o                 2-byte octal
+  -x                 2-byte hex (default)
+  -s, --skip=N       skip N bytes
+  -n, --length=N     read at most N bytes
+""",
+    "diff": """\
+Usage: diff [OPTION]... FILE1 FILE2
+
+Compare FILE1 and FILE2 line by line. Default output is a unified diff.
+
+Options:
+  -u, --unified[=N]         unified diff with N context lines (default 3)
+  -U N                      same, separate-arg form
+  -c                        context-diff format
+  -y, --side-by-side        ndiff-style line-by-line view
+  -q, --brief               only report whether files differ
+  -i, --ignore-case         case-insensitive comparison
+  -w, --ignore-all-space    treat all whitespace as equivalent
+  -B, --ignore-blank-lines  ignore blank-line-only differences
+  --strip-trailing-cr       strip CR before comparing
+
+Exit: 0 = identical, 1 = differ, 2 = trouble.
+""",
+    "join": """\
+Usage: join [OPTION]... FILE1 FILE2
+
+Relational join of two files on a common key. Both files must be
+sorted on the join field.
+
+Options:
+  -1 N             join field of FILE1 (default 1)
+  -2 N             join field of FILE2 (default 1)
+  -j N             same as -1 N -2 N
+  -t CHAR          field separator (default: whitespace)
+  -a {1,2}         also print unpaired lines from FILE 1 or 2
+  -v {1,2}         only print unpaired lines from FILE 1 or 2
+  -e EMPTY         text for missing fields
+  -i, --ignore-case  case-insensitive key compare
+  -o LIST          output spec: comma-separated FILE.FIELD pairs
+""",
+    "fmt": """\
+Usage: fmt [OPTION]... [FILE...]
+
+Reflow paragraphs to fit within a width. Blank lines separate
+paragraphs; whitespace within a paragraph is collapsed.
+
+Options:
+  -w N, --width=N            target width in columns (default 75)
+  -NUM                       same as -w NUM
+  -u, --uniform-spacing      one space between words, two after sentences
+  -c, --crown-margin         preserve indent of first/second lines
+  -t, --tagged-paragraph     preserve indent of just the first line
+  -s, --split-only           split long lines but never join short ones
+""",
+    "nc": """\
+Usage: nc [OPTION]... HOST PORT
+       nc -l -p PORT
+       nc -z HOST PORT[-PORT]
+
+TCP-only netcat. Bidirectional pipe between stdin/stdout and a TCP
+socket; or open a listener; or scan a port range with -z.
+
+Options:
+  -l                listen mode (accept first connection then exit)
+  -p PORT           port for listen mode
+  -z                zero-I/O mode: only check connectivity (port scan)
+  -w SECS           connect/recv timeout in seconds
+  -v                verbose status to stderr
+  -4 / -6           force IPv4 or IPv6
+  -u                UDP mode (NOT supported in this build)
+""",
 }

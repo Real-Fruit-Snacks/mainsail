@@ -7,6 +7,51 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-04-25
+
+Closing out the original "items 1, 4, 5" plan with the remaining
+parity gap-fillers and a TCP `nc`. The applet count climbs from 66 to
+**73**, tests from 337 to **361**.
+
+### Added — Network
+- `nc` — TCP-only netcat. Client (`HOST PORT`), listen mode (`-l -p`),
+  port-scan (`-z HOST PORT[-PORT]`). Bidirectional thread-pumped I/O
+  between stdin/stdout and the socket. UDP (`-u`) is intentionally
+  rejected with an error.
+
+### Added — BusyBox parity
+- `dd` — convert and copy a file with `if=`/`of=`/`bs=`/`count=`/
+  `skip=`/`seek=`/`conv=…`/`status=…`. Supports the common
+  block-size suffixes (K/M/G/T/P) and `conv` operations: `notrunc`,
+  `sync`, `fdatasync`, `fsync`, `lcase`, `ucase`, `swab`, `noerror`,
+  `excl`, `nocreat`.
+- `od` — octal/hex/decimal/character dump with `-c`, `-d`, `-o`,
+  `-x`, `-A {d,o,x,n}` (and `-An`/`-Ad`/`-Ao`/`-Ax` attached forms),
+  `-j`/`-N`/`-w`.
+- `hexdump` — canonical hex+ASCII (`-C`) plus 2-byte word formats
+  (`-x` default, `-d`, `-o`), 1-byte octal (`-b`) and char (`-c`),
+  `-s` skip and `-n` length.
+- `diff` — line-by-line file comparison built on stdlib `difflib`.
+  Unified diff (`-u`/`-U N`), context (`-c`), side-by-side (`-y`),
+  brief (`-q`), case-insensitive (`-i`), whitespace-insensitive (`-w`),
+  blank-line-insensitive (`-B`).
+- `join` — relational join of two pre-sorted files. `-1`/`-2`/`-j`
+  field selectors, `-t` separator, `-a {1,2}` unpaired output, `-v`,
+  `-e EMPTY`, `-i` case-insensitive, `-o` explicit output spec.
+- `fmt` — paragraph reflow with `-w`/`-NUM` width, blank-line
+  paragraph separation, `-s` split-only, plus accept-and-ignore for
+  `-u`/`-c`/`-t`.
+
+### Notes — explicitly deferred
+- `ping`: requires raw sockets (root/admin on most platforms) and a
+  cross-platform implementation pile. Not worth the privilege story
+  for a coreutils-style binary.
+- `yq`: stdlib has no YAML parser, and shipping one usable enough to
+  call "real yq" is a multi-day undertaking. Deferred until there's
+  clear demand. Workaround for now: `yaml2json | mainsail jq …`.
+- `--json` output flags on `ls`/`stat`/`find`: would touch 3 mature
+  applets at once; safer to ship as a separate focused release.
+
 ## [0.2.0] - 2026-04-25
 
 This is the **"why mainsail over BusyBox"** release. 15 new applets,
@@ -306,7 +351,8 @@ Initial release.
 - GitHub Actions CI matrix: Linux / macOS / Windows × Python 3.10–3.13
 - Release workflow that builds and publishes binaries on tag push
 
-[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.2.1
 [0.2.0]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.2.0
 [0.1.15]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.15
 [0.1.14]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.14

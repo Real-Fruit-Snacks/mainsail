@@ -2971,3 +2971,237 @@ def test_jq_parse_error(invoke, workspace, monkeypatch):
     assert rc == 3
     assert "compile error" in errtxt
 
+
+# ─── dd ─────────────────────────────────────────────────────────────
+
+def test_dd_basic_copy(invoke, workspace):
+    src = workspace / "src.bin"
+    src.write_bytes(b"abcdefghij")
+    dst = workspace / "dst.bin"
+    rc, _, _ = invoke("dd", f"if={src}", f"of={dst}", "bs=4", "count=2")
+    assert rc == 0
+    assert dst.read_bytes() == b"abcdefgh"
+
+
+def test_dd_count_limits(invoke, workspace):
+    src = workspace / "src.bin"
+    src.write_bytes(b"x" * 100)
+    dst = workspace / "dst.bin"
+    rc, _, _ = invoke("dd", f"if={src}", f"of={dst}", "bs=10", "count=3")
+    assert rc == 0
+    assert dst.stat().st_size == 30
+
+
+def test_dd_skip(invoke, workspace):
+    src = workspace / "src.bin"
+    src.write_bytes(b"0123456789")
+    dst = workspace / "dst.bin"
+    rc, _, _ = invoke("dd", f"if={src}", f"of={dst}", "bs=2", "skip=2")
+    assert rc == 0
+    # skip=2 with bs=2 means skip 4 bytes
+    assert dst.read_bytes() == b"456789"
+
+
+def test_dd_conv_ucase(invoke, workspace):
+    src = workspace / "src.bin"
+    src.write_bytes(b"hello")
+    dst = workspace / "dst.bin"
+    rc, _, _ = invoke("dd", f"if={src}", f"of={dst}", "conv=ucase")
+    assert rc == 0
+    assert dst.read_bytes() == b"HELLO"
+
+
+def test_dd_size_suffixes(invoke, workspace):
+    src = workspace / "src.bin"
+    src.write_bytes(b"x" * 4096)
+    dst = workspace / "dst.bin"
+    rc, _, _ = invoke("dd", f"if={src}", f"of={dst}", "bs=1K", "count=2")
+    assert rc == 0
+    assert dst.stat().st_size == 2048
+
+
+# ─── hexdump ────────────────────────────────────────────────────────
+
+def test_hexdump_canonical(invoke, workspace):
+    f = workspace / "f.bin"
+    f.write_bytes(b"hello")
+    rc, out, _ = invoke("hexdump", "-C", str(f))
+    assert rc == 0
+    assert "68 65 6c 6c 6f" in out
+    assert "|hello|" in out
+    assert out.endswith("00000005\n")
+
+
+def test_hexdump_default(invoke, workspace):
+    f = workspace / "f.bin"
+    f.write_bytes(b"AB")
+    rc, out, _ = invoke("hexdump", str(f))
+    assert rc == 0
+    # default groups as 2-byte little-endian words: "AB" -> 0x4241
+    assert "4241" in out
+
+
+def test_hexdump_skip_and_length(invoke, workspace):
+    f = workspace / "f.bin"
+    f.write_bytes(b"0123456789")
+    rc, out, _ = invoke("hexdump", "-C", "-s", "2", "-n", "4", str(f))
+    assert rc == 0
+    assert "32 33 34 35" in out  # ASCII '2', '3', '4', '5'
+
+
+# ─── od ─────────────────────────────────────────────────────────────
+
+def test_od_default_octal(invoke, workspace):
+    f = workspace / "f.bin"
+    f.write_bytes(b"AB")
+    rc, out, _ = invoke("od", str(f))
+    assert rc == 0
+    # 'A' = 0o101, 'B' = 0o102
+    assert "101 102" in out
+
+
+def test_od_char_format(invoke, workspace):
+    f = workspace / "f.bin"
+    f.write_bytes(b"AB\nCD")
+    rc, out, _ = invoke("od", "-c", str(f))
+    assert rc == 0
+    assert "  A   B  \\n   C   D" in out
+
+
+def test_od_address_radix(invoke, workspace):
+    f = workspace / "f.bin"
+    f.write_bytes(b"hello")
+    rc, out, _ = invoke("od", "-An", "-c", str(f))
+    assert rc == 0
+    # No address column at all
+    assert not out.lstrip().startswith("0000")
+
+
+# ─── diff ───────────────────────────────────────────────────────────
+
+def test_diff_identical(invoke, workspace):
+    a = workspace / "a"
+    b = workspace / "b"
+    a.write_text("foo\nbar\n")
+    b.write_text("foo\nbar\n")
+    rc, out, _ = invoke("diff", str(a), str(b))
+    assert rc == 0
+    assert out == ""
+
+
+def test_diff_unified(invoke, workspace):
+    a = workspace / "a"
+    b = workspace / "b"
+    a.write_text("foo\nbar\n")
+    b.write_text("foo\nBAR\n")
+    rc, out, _ = invoke("diff", "-u", str(a), str(b))
+    assert rc == 1
+    assert "-bar" in out
+    assert "+BAR" in out
+    assert "@@" in out
+
+
+def test_diff_brief(invoke, workspace):
+    a = workspace / "a"
+    b = workspace / "b"
+    a.write_text("foo\n")
+    b.write_text("bar\n")
+    rc, out, _ = invoke("diff", "-q", str(a), str(b))
+    assert rc == 1
+    assert "differ" in out
+
+
+def test_diff_ignore_case(invoke, workspace):
+    a = workspace / "a"
+    b = workspace / "b"
+    a.write_text("Hello\n")
+    b.write_text("hello\n")
+    rc, out, _ = invoke("diff", "-i", str(a), str(b))
+    assert rc == 0
+    assert out == ""
+
+
+# ─── join ───────────────────────────────────────────────────────────
+
+def test_join_basic(invoke, workspace):
+    a = workspace / "a"
+    b = workspace / "b"
+    a.write_text("alice 30\nbob 25\ncarol 40\n")
+    b.write_text("alice red\nbob blue\ndan green\n")
+    rc, out, _ = invoke("join", str(a), str(b))
+    assert rc == 0
+    # alice, bob match; carol/dan don't
+    assert "alice 30 red" in out
+    assert "bob 25 blue" in out
+    assert "carol" not in out
+    assert "dan" not in out
+
+
+def test_join_custom_separator(invoke, workspace):
+    a = workspace / "a"
+    b = workspace / "b"
+    a.write_text("k1,a\nk2,b\n")
+    b.write_text("k1,X\nk2,Y\n")
+    rc, out, _ = invoke("join", "-t", ",", str(a), str(b))
+    assert rc == 0
+    assert "k1,a,X" in out
+    assert "k2,b,Y" in out
+
+
+def test_join_unpaired_a(invoke, workspace):
+    a = workspace / "a"
+    b = workspace / "b"
+    a.write_text("alice 30\nbob 25\n")
+    b.write_text("alice red\n")
+    rc, out, _ = invoke("join", "-a", "1", str(a), str(b))
+    assert rc == 0
+    # bob has no match in b; -a1 prints unpaired from file 1
+    assert "bob" in out
+
+
+# ─── fmt ────────────────────────────────────────────────────────────
+
+def test_fmt_basic_wrap(invoke, workspace):
+    f = workspace / "f.txt"
+    f.write_text("this is a longish paragraph that should wrap nicely\n")
+    rc, out, _ = invoke("fmt", "-w", "20", str(f))
+    assert rc == 0
+    # All output lines should be at most 20 chars
+    for line in out.split("\n"):
+        if line:
+            assert len(line) <= 20
+
+
+def test_fmt_preserves_paragraph_breaks(invoke, workspace):
+    f = workspace / "f.txt"
+    f.write_text("para one with words\n\npara two with words\n")
+    rc, out, _ = invoke("fmt", "-w", "40", str(f))
+    assert rc == 0
+    # Blank line separator preserved between paragraphs
+    assert "\n\n" in out
+
+
+# ─── nc ─────────────────────────────────────────────────────────────
+
+def test_nc_help(invoke, workspace):
+    rc, out, _ = invoke("nc", "--help")
+    assert rc == 0
+    assert "nc -" in out
+
+
+def test_nc_missing_args(invoke, workspace):
+    rc, _, errtxt = invoke("nc")
+    assert rc == 2
+
+
+def test_nc_z_unreachable(invoke, workspace):
+    # Connect to a port that's almost certainly closed; expect rc=1
+    rc, _, _ = invoke("nc", "-z", "-w", "1", "127.0.0.1", "1")
+    assert rc == 1
+
+
+def test_nc_unsupported_udp(invoke, workspace):
+    rc, _, errtxt = invoke("nc", "-u", "127.0.0.1", "53")
+    assert rc == 2
+    assert "UDP" in errtxt
+

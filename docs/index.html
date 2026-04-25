@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>mainsail — Unix utilities, in one binary</title>
-    <meta name="description" content="66 utilities — POSIX coreutils plus jq for JSON, an HTTP client, a DNS resolver — bundled into a single ~5 MB binary. Native Windows support, no WSL required. Six native binaries plus a portable zipapp for ESXi.">
+    <meta name="description" content="73 utilities — POSIX coreutils plus jq for JSON, an HTTP client, a DNS resolver, a TCP netcat, and BusyBox parity (dd, od, hexdump, diff, join, fmt) — bundled into a single ~5 MB binary. Native Windows support, no WSL required.">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='16' y='24' text-anchor='middle' font-family='Inter,sans-serif' font-size='24' font-weight='800' fill='%2374c7ec'%3EM%3C/text%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -152,7 +152,7 @@
         <div class="container">
             <div class="hero-logo animate"><img src="assets/logo-dark.svg" alt="mainsail"></div>
             <h1 class="hero-tagline animate" style="transition-delay:.1s">Unix utilities, in one binary, anywhere.</h1>
-            <p class="hero-desc animate" style="transition-delay:.2s">66 utilities — the POSIX coreutils plus a real <code style="background:rgba(116,199,236,0.15);padding:1px 6px;border-radius:3px;color:var(--accent1)">jq</code> for JSON, an HTTP client, and a DNS resolver — bundled into a single ~5 MB executable. Native Windows support without WSL, Cygwin, or git-bash. Six native binaries plus a portable zipapp for ESXi.</p>
+            <p class="hero-desc animate" style="transition-delay:.2s">73 utilities — POSIX coreutils plus a real <code style="background:rgba(116,199,236,0.15);padding:1px 6px;border-radius:3px;color:var(--accent1)">jq</code> for JSON, an HTTP client, a DNS resolver, a TCP <code>nc</code>, and BusyBox parity (<code>dd</code>, <code>od</code>, <code>hexdump</code>, <code>diff</code>, …) — bundled into a single ~5 MB executable. Native Windows support without WSL, Cygwin, or git-bash. Six native binaries plus a portable zipapp for ESXi.</p>
             <div class="hero-ctas animate" style="transition-delay:.3s">
                 <a href="https://github.com/Real-Fruit-Snacks/mainsail/releases/latest" class="btn-primary">Download Latest</a>
                 <a href="https://github.com/Real-Fruit-Snacks/mainsail" class="btn-secondary">View Source</a>
@@ -182,9 +182,9 @@
     <!-- Stats -->
     <div class="container">
         <div class="stats animate">
-            <div class="stat"><div class="stat-num" data-target="66">0</div><div class="stat-label">Applets</div></div>
+            <div class="stat"><div class="stat-num" data-target="73">0</div><div class="stat-label">Applets</div></div>
             <div class="stat-div"></div>
-            <div class="stat"><div class="stat-num" data-target="337">0</div><div class="stat-label">Tests</div></div>
+            <div class="stat"><div class="stat-num" data-target="361">0</div><div class="stat-label">Tests</div></div>
             <div class="stat-div"></div>
             <div class="stat"><div class="stat-num" data-target="5" data-suffix="MB">0</div><div class="stat-label">Binary</div></div>
             <div class="stat-div"></div>
@@ -204,9 +204,9 @@
 
             <div class="bento">
                 <div class="bento-card bento-hero animate" style="transition-delay:.1s">
-                    <h3>One Binary, 66 Utilities</h3>
-                    <p>Every common shell tool dispatched through a single executable — POSIX coreutils plus <code>jq</code>, <code>http</code>, and <code>dig</code>. Multi-call mode lets you hardlink to applet names so <code>ls</code> just works.</p>
-                    <div class="mini-terminal"><span class="t-g">$</span> mainsail --list | wc -l<br><span class="t-b">66</span><br><span class="t-g">$</span> ln mainsail ls && ./ls -la</div>
+                    <h3>One Binary, 73 Utilities</h3>
+                    <p>Every common shell tool dispatched through a single executable — POSIX coreutils plus <code>jq</code>, <code>http</code>, <code>dig</code>, <code>nc</code>, and the BusyBox parity gap-fillers (<code>dd</code>, <code>od</code>, <code>hexdump</code>, <code>diff</code>, …). Multi-call mode lets you hardlink to applet names so <code>ls</code> just works.</p>
+                    <div class="mini-terminal"><span class="t-g">$</span> mainsail --list | wc -l<br><span class="t-b">73</span><br><span class="t-g">$</span> ln mainsail ls && ./ls -la</div>
                 </div>
                 <div class="bento-card bento-stat animate" style="transition-delay:.18s">
                     <div class="big">~5<span style="font-size:24px">MB</span></div>
@@ -225,7 +225,7 @@
                     <p>Binary-safe through <code>cat</code>/<code>tee</code>/<code>gzip</code>. <code>tail -f</code> with rotation detection. <code>xargs -0</code> for paths with backslashes.</p>
                 </div>
                 <div class="bento-card bento-stat animate" style="transition-delay:.1s">
-                    <div class="big" style="color:var(--teal)">337</div>
+                    <div class="big" style="color:var(--teal)">361</div>
                     <div class="label">Unit Tests</div>
                 </div>
                 <div class="bento-card bento-hero animate" style="transition-delay:.18s">
@@ -253,7 +253,7 @@
     <section id="applets" style="background:var(--mantle)">
         <div class="container">
             <div class="section-label animate">APPLETS</div>
-            <h2 class="section-title animate" style="transition-delay:.08s">All 66, organized</h2>
+            <h2 class="section-title animate" style="transition-delay:.08s">All 73, organized</h2>
             <p class="section-desc animate" style="transition-delay:.16s">Each applet implements common POSIX flags. Run <code>mainsail &lt;applet&gt; --help</code> for per-applet usage.</p>
 
             <div class="pill-group animate">
@@ -271,6 +271,7 @@
                     <div class="pill">stat</div>
                     <div class="pill">truncate</div>
                     <div class="pill">mktemp</div>
+                    <div class="pill">dd</div>
                 </div>
             </div>
 
@@ -301,6 +302,11 @@
                     <div class="pill">split</div>
                     <div class="pill">cmp</div>
                     <div class="pill">comm</div>
+                    <div class="pill">diff</div>
+                    <div class="pill">join</div>
+                    <div class="pill">fmt</div>
+                    <div class="pill">od</div>
+                    <div class="pill">hexdump</div>
                 </div>
             </div>
 
@@ -316,6 +322,7 @@
                 <div class="pills">
                     <div class="pill" style="border-color:var(--mauve);color:var(--mauve)">http</div>
                     <div class="pill" style="border-color:var(--mauve);color:var(--mauve)">dig</div>
+                    <div class="pill" style="border-color:var(--mauve);color:var(--mauve)">nc</div>
                 </div>
             </div>
 
@@ -397,7 +404,7 @@
                 <div class="arch-card animate" style="transition-delay:.4s">
                     <div class="arch-num">4</div>
                     <h3>Applets</h3>
-                    <p>66 modules in <code>mainsail/applets/</code>, ~10–900 lines each. Read binary via <code>sys.stdin.buffer</code>; write via <code>sys.stdout</code> / <code>sys.stdout.buffer</code>. Return 0 / 1 / 2 (success / runtime / usage).</p>
+                    <p>73 modules in <code>mainsail/applets/</code>, ~10–900 lines each. Read binary via <code>sys.stdin.buffer</code>; write via <code>sys.stdout</code> / <code>sys.stdout.buffer</code>. Return 0 / 1 / 2 (success / runtime / usage).</p>
                 </div>
             </div>
         </div>
@@ -417,7 +424,7 @@
 <span class="t-g">$</span> cd mainsail && pip install -e .
 
 <span class="t-g">$</span> mainsail --version
-<span class="t-b">mainsail 0.2.0</span>
+<span class="t-b">mainsail 0.2.1</span>
 
 <span class="t-m"># Or freeze a standalone binary</span>
 <span class="t-g">$</span> pip install "Nuitka[onefile]"
