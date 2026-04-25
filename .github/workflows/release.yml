@@ -197,6 +197,13 @@ jobs:
       - name: Install Nuitka
         run: pip3 install --break-system-packages "Nuitka[onefile]"
       - name: Build (static, full preset)
+        env:
+          # Force the Nuitka bootstrap and onefile shim to link
+          # statically against musl (no /lib/ld-musl-x86_64.so.1
+          # dependency at runtime). Nuitka's internal scons picks
+          # these up when invoking gcc.
+          CFLAGS: "-static"
+          LDFLAGS: "-static"
         run: python3 build.py --static --preset full
       - name: Verify static linkage
         shell: bash

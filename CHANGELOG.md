@@ -7,6 +7,17 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.12] - 2026-04-25
+
+### Fixed
+- Static x64 build now actually produces a fully-static binary.
+  v0.1.11's `--static-libpython=yes` linked Python statically, but the
+  Nuitka onefile bootstrap shim still pulled in `libc.musl-x86_64.so.1`
+  dynamically — the verify step caught it. Setting `CFLAGS=-static`
+  and `LDFLAGS=-static` on the build step forces gcc to link
+  everything (including musl libc) into the binary itself. The verify
+  step's strict ldd check confirms zero shared deps before upload.
+
 ## [0.1.11] - 2026-04-25
 
 ### Fixed
@@ -184,7 +195,8 @@ Initial release.
 - GitHub Actions CI matrix: Linux / macOS / Windows × Python 3.10–3.13
 - Release workflow that builds and publishes binaries on tag push
 
-[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.11...HEAD
+[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.12...HEAD
+[0.1.12]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.12
 [0.1.11]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.11
 [0.1.10]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.10
 [0.1.9]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.9
