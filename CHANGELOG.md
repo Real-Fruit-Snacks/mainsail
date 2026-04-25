@@ -7,6 +7,27 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.10] - 2026-04-24
+
+### Added
+- Fully-static Linux binaries (best-effort): `mainsail-linux-x64-static`
+  and `mainsail-linux-arm64-static`, built inside Alpine 3.19, linked
+  against musl, with `--static-libpython=yes`. The release-workflow
+  step verifies that `ldd` reports no shared-library dependencies and
+  fails the build otherwise — anything that ships is genuinely static.
+  Runs on distroless containers, embedded systems, exotic distros,
+  anywhere a kernel is present.
+- `python build.py --static` flag (passes `--static-libpython=yes` to
+  Nuitka). Linux + Alpine only — Windows/macOS already get system libs
+  for free.
+
+### Notes
+- The static job uses `continue-on-error: true` so a flaky musl/static
+  toolchain interaction can't block the dynamic glibc release. If a
+  given release tag lacks `-static` artifacts, the static build hit a
+  snag for that toolchain combo — fall back to the dynamic glibc
+  binary or the `mainsail.pyz` zipapp.
+
 ## [0.1.9] - 2026-04-24
 
 ### Added
@@ -146,7 +167,8 @@ Initial release.
 - GitHub Actions CI matrix: Linux / macOS / Windows × Python 3.10–3.13
 - Release workflow that builds and publishes binaries on tag push
 
-[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.9...HEAD
+[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.10...HEAD
+[0.1.10]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.10
 [0.1.9]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.9
 [0.1.8]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.8
 [0.1.7]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.7

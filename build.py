@@ -13,6 +13,9 @@ Applet selection:
     python build.py --pyz --preset slim          # preset applies to pyz too
     python build.py --list-presets               # show preset contents
 
+Static linking (Linux only — meant for Alpine/musl runs in CI):
+    python build.py --static                     # pass --static-libpython=yes
+
 The artifact name gains a `-<preset>` suffix for non-full builds
 (e.g. `dist/mainsail-slim`, `dist/mainsail-slim.pyz`). When using
 --applets directly, the suffix is `-custom`.
@@ -147,7 +150,7 @@ def build_pyz(keep_modules: set[str] | None, suffix: str) -> int:
     return 0
 
 
-def build_binary(keep_modules: set[str] | None, suffix: str) -> int:
+def build_binary(keep_modules: set[str] | None, suffix: str, *, static: bool = False) -> int:
     if shutil.which("nuitka") is None:
         try:
             import nuitka  # noqa: F401
@@ -197,6 +200,12 @@ def build_binary(keep_modules: set[str] | None, suffix: str) -> int:
             # Windows bundles VC++ runtime DLLs by default; most users
             # already have them. Disabling shaves ~8 MB off the build.
             cmd.append("--include-windows-runtime-dlls=no")
+        if static:
+            # Ask Nuitka to link Python statically. Requires libpython.a
+            # to be available — present on Alpine's python3-dev. On
+            # systems where it isn't, Nuitka will refuse and the build
+            # fails fast (which is what we want).
+            cmd.append("--static-libpython=yes")
         cmd.append(str(entry))
         print(" ".join(cmd))
         rc = subprocess.call(cmd, cwd=build_cwd)
@@ -223,6 +232,7 @@ def main() -> int:
     preset: str | None = None
     custom_applets: set[str] | None = None
     explicit_target = False
+    static = False
 
     i = 0
     while i < len(argv):
@@ -237,6 +247,8 @@ def main() -> int:
             want_pyz = True
             want_binary = True
             explicit_target = True
+        elif a == "--static":
+            static = True
         elif a == "--list-presets":
             return _print_presets()
         elif a == "--preset":
@@ -302,12 +314,14 @@ def main() -> int:
         keep_modules = None
         suffix = ""
 
+    # Static is a Linux-binary-only concept (Windows DLLs / macOS libs are
+    # always present on those systems); ignore it for the pyz path.
     if want_pyz:
         rc = build_pyz(keep_modules, suffix)
         if rc != 0:
             return rc
     if want_binary:
-        rc = build_binary(keep_modules, suffix)
+        rc = build_binary(keep_modules, suffix, static=static)
         if rc != 0:
             return rc
     return 0

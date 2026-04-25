@@ -166,8 +166,72 @@ jobs:
           name: ${{ matrix.artifact }}
           path: dist/${{ matrix.filename }}
 
+  # ── Optional musl-static Linux builds ────────────────────────────────
+  # Built inside Alpine so the binary links against musl libc (not glibc).
+  # If `--static-libpython=yes` succeeds we get a fully static ELF with
+  # zero shared-library dependencies — runs on distroless containers,
+  # exotic distros, anywhere you need maximum portability.
+  #
+  # `continue-on-error: true` so a static build hiccup doesn't block the
+  # release; the dynamic glibc binaries from the `build` job above are
+  # always shipped.
+  build-static:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            artifact: mainsail-linux-x64-static
+          - os: ubuntu-24.04-arm
+            artifact: mainsail-linux-arm64-static
+    runs-on: ${{ matrix.os }}
+    container:
+      image: alpine:3.19
+    continue-on-error: true
+    steps:
+      - name: Install build deps (Alpine)
+        run: |
+          apk add --no-cache \
+            python3 python3-dev py3-pip \
+            gcc g++ musl-dev \
+            libffi-dev openssl-dev zlib-dev xz-dev bzip2-dev \
+            patchelf ccache make git \
+            bash
+      - uses: actions/checkout@v4
+      - name: Install Nuitka
+        run: pip3 install --break-system-packages "Nuitka[onefile]"
+      - name: Build (static, full preset)
+        run: python3 build.py --static --preset full
+      - name: Verify linkage
+        shell: bash
+        run: |
+          echo "── file ──"
+          file dist/mainsail
+          echo "── ldd ──"
+          if ldd dist/mainsail 2>&1 | grep -E "=> /" >/dev/null; then
+            echo "FAIL: binary has dynamic library dependencies — not static."
+            ldd dist/mainsail
+            exit 1
+          fi
+          echo "OK: no dynamic library dependencies."
+      - name: Smoke test
+        shell: bash
+        run: |
+          ./dist/mainsail --version
+          ./dist/mainsail --list > list.out
+          test "$(wc -l < list.out)" -ge 40
+          out=$(./dist/mainsail echo "static ok")
+          test "$out" = "static ok"
+      - name: Rename
+        shell: bash
+        run: mv dist/mainsail "dist/${{ matrix.artifact }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/${{ matrix.artifact }}
+
   release:
-    needs: [build, zipapp]
+    needs: [build, zipapp, build-static]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     permissions:
