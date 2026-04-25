@@ -93,9 +93,27 @@
         .pill-group{margin-bottom:20px}
         .pill-group-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ov0);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
         .pills{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
-        .pill{background:var(--mantle);border:1px solid var(--sf0);border-radius:20px;padding:8px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;display:flex;align-items:center;gap:8px;transition:all .2s;color:var(--sub0)}
-        .pill:hover{border-color:var(--accent1);background:var(--base);color:var(--text)}
-        .pill .alias{color:var(--ov0);font-size:11px;margin-left:auto}
+        .pill{background:var(--mantle);border:1px solid;border-radius:20px;padding:8px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;display:flex;align-items:center;gap:8px;transition:all .2s}
+        .pill:hover{background:var(--base);filter:brightness(1.25)}
+        .pill .alias{opacity:.55;font-size:11px;margin-left:auto}
+        /* Per-category accent colors. The color cascades to text + border;
+           the alias inherits and dims via opacity above. */
+        .pill-group[data-accent="green"]   .pill-group-label,
+        .pill-group[data-accent="green"]   .pill{color:var(--green);border-color:rgba(166,227,161,.35)}
+        .pill-group[data-accent="peach"]   .pill-group-label,
+        .pill-group[data-accent="peach"]   .pill{color:var(--peach);border-color:rgba(250,179,135,.35)}
+        .pill-group[data-accent="cyan"]    .pill-group-label,
+        .pill-group[data-accent="cyan"]    .pill{color:var(--accent1);border-color:rgba(116,199,236,.35)}
+        .pill-group[data-accent="mauve"]   .pill-group-label,
+        .pill-group[data-accent="mauve"]   .pill{color:var(--mauve);border-color:rgba(203,166,247,.35)}
+        .pill-group[data-accent="teal"]    .pill-group-label,
+        .pill-group[data-accent="teal"]    .pill{color:var(--teal);border-color:rgba(148,226,213,.35)}
+        .pill-group[data-accent="yellow"]  .pill-group-label,
+        .pill-group[data-accent="yellow"]  .pill{color:var(--yellow);border-color:rgba(249,226,175,.35)}
+        .pill-group[data-accent="red"]     .pill-group-label,
+        .pill-group[data-accent="red"]     .pill{color:var(--red);border-color:rgba(243,139,168,.35)}
+        .pill-group[data-accent="lavender"] .pill-group-label,
+        .pill-group[data-accent="lavender"] .pill{color:var(--accent2);border-color:rgba(180,190,254,.35)}
 
         /* ── Arch ── */
         .arch-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
@@ -256,7 +274,7 @@
             <h2 class="section-title animate" style="transition-delay:.08s">All 73, organized</h2>
             <p class="section-desc animate" style="transition-delay:.16s">Each applet implements common POSIX flags. Run <code>mainsail &lt;applet&gt; --help</code> for per-applet usage.</p>
 
-            <div class="pill-group animate">
+            <div class="pill-group animate" data-accent="green">
                 <div class="pill-group-label">File operations</div>
                 <div class="pills">
                     <div class="pill">ls<span class="alias">dir</span></div>
@@ -275,7 +293,7 @@
                 </div>
             </div>
 
-            <div class="pill-group animate" style="transition-delay:.06s">
+            <div class="pill-group animate" style="transition-delay:.06s" data-accent="peach">
                 <div class="pill-group-label">Text processing</div>
                 <div class="pills">
                     <div class="pill">cat<span class="alias">type</span></div>
@@ -310,14 +328,14 @@
                 </div>
             </div>
 
-            <div class="pill-group animate" style="transition-delay:.09s">
+            <div class="pill-group animate" style="transition-delay:.09s" data-accent="cyan">
                 <div class="pill-group-label">JSON &amp; data</div>
                 <div class="pills">
                     <div class="pill">jq</div>
                 </div>
             </div>
 
-            <div class="pill-group animate" style="transition-delay:.12s">
+            <div class="pill-group animate" style="transition-delay:.12s" data-accent="mauve">
                 <div class="pill-group-label">Network</div>
                 <div class="pills">
                     <div class="pill">http</div>
@@ -326,7 +344,7 @@
                 </div>
             </div>
 
-            <div class="pill-group animate" style="transition-delay:.12s">
+            <div class="pill-group animate" style="transition-delay:.15s" data-accent="teal">
                 <div class="pill-group-label">Hashing & integrity</div>
                 <div class="pills">
                     <div class="pill">md5sum</div>
@@ -336,7 +354,7 @@
                 </div>
             </div>
 
-            <div class="pill-group animate" style="transition-delay:.18s">
+            <div class="pill-group animate" style="transition-delay:.18s" data-accent="yellow">
                 <div class="pill-group-label">Archives</div>
                 <div class="pills">
                     <div class="pill">tar</div>
@@ -347,7 +365,7 @@
                 </div>
             </div>
 
-            <div class="pill-group animate" style="transition-delay:.24s">
+            <div class="pill-group animate" style="transition-delay:.21s" data-accent="red">
                 <div class="pill-group-label">Filesystem & paths</div>
                 <div class="pills">
                     <div class="pill">du</div>
@@ -360,7 +378,7 @@
                 </div>
             </div>
 
-            <div class="pill-group animate" style="transition-delay:.30s">
+            <div class="pill-group animate" style="transition-delay:.24s" data-accent="lavender">
                 <div class="pill-group-label">System & control</div>
                 <div class="pills">
                     <div class="pill">uname</div>
