@@ -7,6 +7,18 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.15] - 2026-04-25
+
+### Fixed
+- musl-linked Linux x64 binary now actually runs. v0.1.14's smoke step
+  caught a runtime `ImportError: Error relocating math.so:
+  PyLong_AsLongAndOverflow: symbol not found` — `--static-libpython=yes`
+  bakes libpython into the bootstrap, which then hides the symbols
+  that dynamically-loaded `.so` extensions in the onefile payload need.
+  Dropped `--static-libpython=yes` from the Alpine build call. The
+  bootstrap now dynamically links libpython.so (bundled in the onefile
+  payload) and musl libc — exactly what the artifact name promises.
+
 ## [0.1.14] - 2026-04-25
 
 ### Changed
@@ -224,7 +236,8 @@ Initial release.
 - GitHub Actions CI matrix: Linux / macOS / Windows × Python 3.10–3.13
 - Release workflow that builds and publishes binaries on tag push
 
-[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.14...HEAD
+[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.15...HEAD
+[0.1.15]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.15
 [0.1.14]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.14
 [0.1.13]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.13
 [0.1.12]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.12

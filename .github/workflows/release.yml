@@ -212,11 +212,15 @@ jobs:
       - name: Install Nuitka
         run: pip3 install --break-system-packages "Nuitka[onefile]"
       - name: Build (musl, full preset)
-        # Note: --static-libpython=yes still helps (bakes libpython into
-        # the bootstrap; smaller payload). The bootstrap itself remains
-        # dynamically linked against musl libc — that's fine, it's the
-        # whole point of this variant.
-        run: python3 build.py --static --preset full
+        # Plain build, no --static. We learned the hard way that
+        # --static-libpython=yes breaks runtime extension loading
+        # ("Error relocating math.so: PyLong_AsLongAndOverflow") because
+        # the dynamically-loaded .so extensions in the onefile payload
+        # can't find libpython symbols once libpython has been baked
+        # into the bootstrap. The bootstrap therefore dynamically links
+        # libpython.so + musl libc — exactly what we want for an Alpine-
+        # compatible artifact.
+        run: python3 build.py --preset full
       - name: Verify musl-only linkage
         shell: bash
         run: |
