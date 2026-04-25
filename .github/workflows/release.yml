@@ -175,16 +175,12 @@ jobs:
   # `continue-on-error: true` so a static build hiccup doesn't block the
   # release; the dynamic glibc binaries from the `build` job above are
   # always shipped.
+  # ARM64-static is intentionally absent: GitHub doesn't support
+  # JavaScript actions (e.g. actions/checkout) inside Alpine containers
+  # on Linux ARM64 runners — only x64. Until that changes, ARM64 users
+  # can use the dynamic glibc binary or build static locally on Alpine.
   build-static:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-22.04
-            artifact: mainsail-linux-x64-static
-          - os: ubuntu-24.04-arm
-            artifact: mainsail-linux-arm64-static
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-22.04
     container:
       image: alpine:3.19
     continue-on-error: true
@@ -202,15 +198,19 @@ jobs:
         run: pip3 install --break-system-packages "Nuitka[onefile]"
       - name: Build (static, full preset)
         run: python3 build.py --static --preset full
-      - name: Verify linkage
+      - name: Verify static linkage
         shell: bash
         run: |
-          echo "── file ──"
-          file dist/mainsail
-          echo "── ldd ──"
-          if ldd dist/mainsail 2>&1 | grep -E "=> /" >/dev/null; then
-            echo "FAIL: binary has dynamic library dependencies — not static."
-            ldd dist/mainsail
+          # `ldd` on a static ELF often exits non-zero with "not a
+          # dynamic executable" — capture output to a variable so the
+          # pipeline doesn't trip set -eo pipefail. Also avoid `file`,
+          # which Alpine doesn't ship by default.
+          deps=$(ldd dist/mainsail 2>&1 || true)
+          echo "── ldd output ──"
+          echo "$deps"
+          echo "── verdict ──"
+          if echo "$deps" | grep -qE "=> /"; then
+            echo "FAIL: binary has dynamic library dependencies."
             exit 1
           fi
           echo "OK: no dynamic library dependencies."
@@ -224,11 +224,11 @@ jobs:
           test "$out" = "static ok"
       - name: Rename
         shell: bash
-        run: mv dist/mainsail "dist/${{ matrix.artifact }}"
+        run: mv dist/mainsail dist/mainsail-linux-x64-static
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact }}
-          path: dist/${{ matrix.artifact }}
+          name: mainsail-linux-x64-static
+          path: dist/mainsail-linux-x64-static
 
   release:
     needs: [build, zipapp, build-static]

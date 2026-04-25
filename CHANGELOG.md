@@ -7,6 +7,23 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.11] - 2026-04-25
+
+### Fixed
+- Static Linux x64 build now actually ships. v0.1.10's verify step
+  used `file` (not in Alpine by default) and tripped `set -eo pipefail`
+  on `ldd` returning non-zero for a static ELF — both expected when
+  the build *does* succeed. The verify step is now `ldd`-only and
+  captures output to a variable, so the artifact passes.
+
+### Removed
+- `mainsail-linux-arm64-static` is permanently dropped from CI. GitHub
+  Actions doesn't support Node.js actions (e.g. `actions/checkout`)
+  inside Alpine containers on Linux ARM64 runners — only x64. Until
+  that changes upstream, ARM64 users can use the dynamic glibc binary,
+  the portable `mainsail.pyz`, or build a static binary locally inside
+  Alpine.
+
 ## [0.1.10] - 2026-04-24
 
 ### Added
@@ -167,7 +184,8 @@ Initial release.
 - GitHub Actions CI matrix: Linux / macOS / Windows × Python 3.10–3.13
 - Release workflow that builds and publishes binaries on tag push
 
-[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.10...HEAD
+[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.11...HEAD
+[0.1.11]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.11
 [0.1.10]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.10
 [0.1.9]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.9
 [0.1.8]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.8

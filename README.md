@@ -52,7 +52,13 @@ Drop it anywhere on `PATH` and run.
 
 **Slim variants** — every native binary above is also shipped as `…-slim` (e.g. `mainsail-linux-x64-slim`). Slim drops the archive (`tar`, `gzip`, `gunzip`, `zip`, `unzip`) and hashing (`md5sum`, `sha*sum`) applets. Nuitka-binary savings are modest (~3 %) since the Python runtime dominates the payload — prefer slim only if you truly need fewer utilities.
 
-**Fully static Linux variants** — `mainsail-linux-x64-static` and `mainsail-linux-arm64-static` are built inside Alpine, link against musl, and have **zero shared-library dependencies**. They run on any Linux kernel — distroless containers, embedded systems, glibc-only systems, anything. Slightly larger than the dynamic glibc binary, but maximum portability. (Built best-effort; if a release didn't ship them, the static toolchain hit a snag — file an issue.)
+**Fully static Linux x64 variant** — `mainsail-linux-x64-static` is built inside Alpine, links against musl, and has **zero shared-library dependencies**. It runs on any Linux kernel — distroless containers, embedded systems, glibc-only systems, anything. Slightly larger than the dynamic glibc binary, but maximum portability. (Built best-effort; if a release didn't ship it, the static toolchain hit a snag — file an issue.)
+
+> Why no `linux-arm64-static`? GitHub Actions doesn't support Node.js
+> actions (like `actions/checkout`) inside Alpine containers on ARM64
+> runners — only x64. Until that changes, ARM64 users can use the
+> dynamic glibc binary, the portable `mainsail.pyz`, or build static
+> locally on Alpine.
 
 **Or use the portable zipapp** — `mainsail.pyz` (~80 KB full, ~68 KB slim) runs on any host with Python 3.8+, including ESXi, exotic architectures, jailbroken routers, and restrictive corporate machines where installing a native binary isn't practical:
 
@@ -211,7 +217,7 @@ python build.py --list-presets                          # see what's in each
 
 Non-full builds land as `dist/mainsail-<suffix>` (or `.exe`, or `.pyz`). Savings are meaningful for the zipapp (44% smaller for minimal) but modest for the Nuitka binary (~3–5%) because the Python runtime is the bulk of the payload.
 
-CI matrix builds **ten native binaries** (five full, five slim), **two zipapps** (`mainsail.pyz` full and `mainsail-slim.pyz`), and **two fully-static Linux binaries** (`mainsail-linux-x64-static`, `mainsail-linux-arm64-static`, built in Alpine + musl, no shared-lib dependencies) on every release tag.
+CI matrix builds **ten native binaries** (five full, five slim), **two zipapps** (`mainsail.pyz` full and `mainsail-slim.pyz`), and **one fully-static Linux x64 binary** (`mainsail-linux-x64-static`, built in Alpine + musl, no shared-lib dependencies) on every release tag.
 
 ---
 
