@@ -12,19 +12,7 @@
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Tests](https://img.shields.io/badge/tests-361%20passing-brightgreen.svg)
 
-**Single-file BusyBox-like multi-call binary, in Python.**
-
-**73 utilities. One ~5–7 MB binary. Native Windows — no WSL, Cygwin, or git-bash.**
-
-The POSIX coreutils (`ls`, `cat`, `grep`, `sed`, `awk`, `tar`, …) plus:
-
-- a real **`jq`** for JSON
-- an HTTP client (**`http`**)
-- a DNS resolver (**`dig`**)
-- a TCP netcat (**`nc`**)
-- the BusyBox parity gap-fillers GNU users miss: `dd`, `od`, `hexdump`, `diff`, `join`, `fmt`, `paste`, `split`, `cmp`, `comm`, `tac`, `rev`, `nl`, `mktemp`, `truncate`, `getopt`, `expand`, `unexpand`
-
-Ships **six native binaries** (Linux × x86_64/ARM64, Windows × x86_64/ARM64, macOS ARM64, Alpine/musl Linux x64) plus a **~125 KB portable zipapp** that runs anywhere Python 3.8+ is installed — including ESXi.
+A BusyBox-style multi-call binary in Python — **73 Unix utilities**, one ~5–7 MB executable, native on Linux, Windows, and macOS.
 
 [Download Latest](https://github.com/Real-Fruit-Snacks/mainsail/releases/latest)
 &nbsp;·&nbsp;
