@@ -14,7 +14,13 @@
 
 **Single-file BusyBox-like multi-call binary, in Python.**
 
-51 POSIX utilities — `ls`, `cat`, `grep`, `sed`, `awk`, `tar`, and friends — bundled into a ~5 MB executable. Native Windows support without WSL, Cygwin, or git-bash. Five native targets (Linux/Windows × x86_64/ARM64, macOS ARM64) plus an ~80 KB portable zipapp that runs anywhere Python 3.8+ is installed — including ESXi.
+51 POSIX utilities — `ls`, `cat`, `grep`, `sed`, `awk`, `tar`, and friends — bundled into a ~5 MB executable. Native Windows support without WSL, Cygwin, or git-bash. Six native binaries (glibc Linux × x86_64/ARM64, Windows × x86_64/ARM64, macOS ARM64, Alpine/musl Linux x64) plus an ~80 KB portable zipapp that runs anywhere Python 3.8+ is installed — including ESXi.
+
+[Download Latest](https://github.com/Real-Fruit-Snacks/mainsail/releases/latest)
+&nbsp;·&nbsp;
+[GitHub Pages](https://real-fruit-snacks.github.io/mainsail/)
+&nbsp;·&nbsp;
+[Changelog](CHANGELOG.md)
 
 </div>
 
@@ -22,69 +28,78 @@
 
 ## Quick Start
 
-**Prerequisites:** Python 3.10+
+**From a release** — no Python required:
+
+```bash
+# Linux (glibc — Ubuntu, Debian, RHEL, …)
+curl -LO https://github.com/Real-Fruit-Snacks/mainsail/releases/latest/download/mainsail-linux-x64
+chmod +x mainsail-linux-x64
+./mainsail-linux-x64 --version
+```
+
+**From source** — Python 3.10+:
 
 ```bash
 git clone https://github.com/Real-Fruit-Snacks/mainsail.git
 cd mainsail
 pip install -e .
-```
-
-**Verify:**
-
-```bash
-mainsail --version
 mainsail --list
-mainsail ls --help
 ```
 
-**Or grab a pre-built binary** — no Python required:
+---
 
-| Platform        | x86_64                      | ARM64                         |
-|-----------------|-----------------------------|-------------------------------|
-| Linux           | `mainsail-linux-x64`        | `mainsail-linux-arm64`        |
-| Windows         | `mainsail-windows-x64.exe`  | `mainsail-windows-arm64.exe`  |
-| macOS           | — _(see below)_             | `mainsail-macos-arm64`        |
+## Pre-built artifacts
 
-_Intel Mac support: GitHub's free-tier `macos-13` runner queue is effectively unavailable to this project, so we don't ship a pre-built `mainsail-macos-x64`. Intel Mac users can use the portable **`mainsail.pyz`** (same feature set, needs Python 3.8+) or `pip install -e .` from source._
+Every release tag (`v0.1.x`) ships **13 artifacts** built and verified by GitHub Actions:
 
-Drop it anywhere on `PATH` and run.
+### Native binaries
 
-**Slim variants** — every native binary above is also shipped as `…-slim` (e.g. `mainsail-linux-x64-slim`). Slim drops the archive (`tar`, `gzip`, `gunzip`, `zip`, `unzip`) and hashing (`md5sum`, `sha*sum`) applets. Nuitka-binary savings are modest (~3 %) since the Python runtime dominates the payload — prefer slim only if you truly need fewer utilities.
+| Target                            | Full                                | Slim _(no archives/hashing)_              |
+|-----------------------------------|-------------------------------------|-------------------------------------------|
+| Linux x86_64 (glibc 2.35+)        | `mainsail-linux-x64`                | `mainsail-linux-x64-slim`                 |
+| Linux ARM64 (glibc 2.39+)         | `mainsail-linux-arm64`              | `mainsail-linux-arm64-slim`               |
+| Linux x86_64 **musl** (Alpine)    | `mainsail-linux-x64-musl` ✱         | _(use the full one or build slim locally)_ |
+| Windows x86_64                    | `mainsail-windows-x64.exe`          | `mainsail-windows-x64-slim.exe`           |
+| Windows ARM64                     | `mainsail-windows-arm64.exe`        | `mainsail-windows-arm64-slim.exe`         |
+| macOS ARM64 (Apple Silicon)       | `mainsail-macos-arm64`              | `mainsail-macos-arm64-slim`               |
 
-**Linux x64 musl variant** — `mainsail-linux-x64-musl` is built inside Alpine 3.19 against musl libc instead of glibc. It runs on Alpine, distroless musl containers, and any musl-libc Linux system. It will _not_ run on glibc-only systems (Ubuntu, Debian, RHEL, …) — use the dynamic glibc `mainsail-linux-x64` for those. (Built best-effort; if a release didn't ship it, the Alpine toolchain hit a snag.)
+✱ The `-musl` build runs on Alpine and any musl-libc Linux (distroless containers, `gcr.io/distroless/static`, etc.). It does **not** run on glibc systems — use the regular `mainsail-linux-x64` for those.
 
-> **Why no "fully static" variant?** Forcing `LDFLAGS=-static` does
-> link the bootstrap shim statically, but Python then refuses to load
-> any C extension at runtime with `ImportError: Dynamic loading not
-> supported` — a fully-static Python interpreter can't `dlopen()`. A
-> truly self-contained Python binary would require baking every
-> extension into `libpython` at compile time, which `python-build-standalone`
-> doesn't ship. So we ship a musl-linked variant for Alpine/distroless
-> users and the dynamic glibc binary for everyone else.
->
-> **Why no `linux-arm64-musl`?** GitHub Actions doesn't support Node.js
-> actions (like `actions/checkout`) inside Alpine containers on ARM64
-> runners — only x64. Until that changes upstream, ARM64 users can use
-> the dynamic glibc binary, the portable `mainsail.pyz`, or build the
-> musl variant locally on Alpine.
+Drop any binary anywhere on `PATH` and run.
 
-**Or use the portable zipapp** — `mainsail.pyz` (~80 KB full, ~68 KB slim) runs on any host with Python 3.8+, including ESXi, exotic architectures, jailbroken routers, and restrictive corporate machines where installing a native binary isn't practical:
+### Portable zipapp
+
+| Artifact            | Size    | Applets | Notes                                         |
+|---------------------|---------|---------|-----------------------------------------------|
+| `mainsail.pyz`      | ~80 KB  | 51      | runs on any host with Python 3.8+             |
+| `mainsail-slim.pyz` | ~68 KB  | 39      | smaller; same applets as the slim binaries    |
+
+Useful for ESXi (which bundles Python 3 since 7.0U3), exotic architectures, jailbroken routers, and corporate machines where installing a native binary isn't practical:
 
 ```bash
 scp mainsail.pyz host:/tmp/
-ssh host 'python3 /tmp/mainsail.pyz ls -la'
+ssh host 'python3 /tmp/mainsail.pyz find /var/log -mtime -7'
 ```
 
-**Or build your own custom subset** — pick exactly the applets you want:
+### Build your own
+
+Pick exactly the applets you need:
 
 ```bash
-python build.py --applets ls,cat,grep,sed,awk        # Nuitka binary
-python build.py --pyz --applets ls,cat,grep,sed,awk  # zipapp
-python build.py --list-presets                       # show slim/minimal
+python build.py --preset slim                      # 39 applets, no archives/hashing
+python build.py --preset minimal                   # 18 applets, scripting essentials
+python build.py --applets ls,cat,grep,sed,awk      # hand-picked
+python build.py --pyz --applets ls,cat,grep,sed    # smallest zipapp (~18 KB for 5 applets)
+python build.py --list-presets                     # see what's in each preset
 ```
 
-For a zipapp, a 5-applet custom build is well under 20 KB.
+Savings are real for the zipapp (minimal drops it from 80 KB to 45 KB) but modest for the Nuitka binary (~3 %) — the Python runtime dominates the payload, not our code. Non-full builds land as `dist/mainsail-<suffix>` (with matching `.exe`/`.pyz` extension).
+
+> **Why no fully-static Linux binary?** We tried. `LDFLAGS=-static` and `--static-libpython=yes` both link cleanly, but Python then refuses to load any C extension at runtime with `ImportError: Dynamic loading not supported` — a fully-static Python interpreter can't `dlopen()`. A truly self-contained Python binary requires baking every extension into `libpython` at compile time, which `python-build-standalone` doesn't ship. So we offer the musl-linked variant for Alpine/distroless users and the dynamic glibc binary for everyone else.
+>
+> **Why no `linux-arm64-musl`?** GitHub Actions doesn't support Node.js actions inside Alpine containers on ARM64 runners — only x64. Until that changes, ARM64 users have the dynamic glibc binary, the portable `mainsail.pyz`, or can build a musl variant locally on Alpine.
+>
+> **Why no `mainsail-macos-x64`?** GitHub's free-tier `macos-13` runner queue is effectively unavailable to this project (30+ minute queues, never dispatched). Apple stopped shipping Intel Macs in 2023; the ARM64 binary covers the supported lineup. Intel-Mac users can use the portable `mainsail.pyz` or build from source.
 
 ---
 
@@ -92,7 +107,7 @@ For a zipapp, a 5-applet custom build is well under 20 KB.
 
 ### One binary, fifty-one utilities
 
-Every common POSIX tool you'd reach for in a shell pipeline. Dispatch via `mainsail <applet>` or symlink/hardlink to call directly.
+Every common POSIX tool you'd reach for in a shell pipeline. Dispatch via `mainsail <applet>` or symlink/hardlink to call the applet directly.
 
 ```bash
 mainsail ls -la                          # GNU-style flags
@@ -103,7 +118,7 @@ mainsail seq 100 | mainsail sort -rn | mainsail head -5
 
 ### Native Windows
 
-No WSL, no Cygwin. `mainsail.exe` runs on bare Windows and recognizes Windows-native command names as aliases.
+No WSL, no Cygwin, no git-bash. `mainsail.exe` runs on bare Windows and recognises Windows-native command names as aliases.
 
 ```cmd
 mainsail dir .                           :: == ls
@@ -115,7 +130,13 @@ mainsail where python                    :: == which
 
 ### Real applets, not stubs
 
-Each applet implements the common POSIX flags and edge cases. `find` has an expression tree with `-exec`, `-prune`, `-and`/`-or`, parens. `sed` has substitution, addresses, in-place edit, BRE/ERE. `awk` covers BEGIN/END, patterns, ranges, arrays, `gsub`, `printf`, and the standard built-ins. `sort` has key fields and separators. `tar` handles `-z`/`-j`/`-xz` compression and traditional + dashed flag forms.
+Each applet implements the common POSIX flags and edge cases.
+
+- `find` — expression tree with `-exec`, `-prune`, `-and`/`-or`, parens, size/time predicates, `-delete`
+- `sed` — `s///`, `d`, `p`, `q`, `=`, `y///`, addresses, ranges, negation, `-i` in-place edit, BRE + ERE
+- `awk` — BEGIN/END, `/regex/` and expression patterns, range patterns, `print`/`printf`, full control flow (if/else, while, do/while, for, for-in), associative arrays, the standard built-ins (`length`, `substr`, `index`, `split`, `sub`, `gsub`, `match`, `toupper`, `tolower`, `sprintf`, `int`)
+- `sort` — `-k` key fields, `-t` custom separator, `-o` output file, numeric/reverse/unique
+- `tar` — create/extract/list with gzip/bzip2/xz filters; accepts traditional (`cvfz`) and dashed (`-cvfz`) flag forms
 
 ```bash
 mainsail find . -name '*.tmp' -delete
@@ -137,7 +158,7 @@ mainsail gzip -c data.bin | mainsail gunzip > data.bin.copy
 
 ### Cross-platform integrity
 
-Same SHA-256 of `"abc"` (`ba7816bf...015ad`) on every supported platform. `tar` archives are interchangeable. Stress harness verifies 23 scenarios on Linux, Windows, and macOS CI runners.
+Same SHA-256 of `"abc"` (`ba7816bf…015ad`) on every supported platform. `tar` archives are interchangeable. The CI suite runs 268 unit tests on Linux/macOS/Windows and a 23-case stress harness covering large inputs, Unicode, binary-safe streams, deep trees, pipelines, round-trips, and edge cases.
 
 ---
 
@@ -175,10 +196,10 @@ mainsail/
 
 **Four-layer flow:**
 
-1. **Entry** — `__main__.py` or installed `mainsail` script enters `cli.main(argv)`.
+1. **Entry** — `__main__.py` or the installed `mainsail` script enters `cli.main(argv)`.
 2. **Dispatch** — `cli.py` checks `argv[0]` basename for multi-call (e.g. `ls -la` when hardlinked); otherwise treats `argv[1]` as the applet name. Intercepts `--help` (long form only — `-h` is reserved for applet flags like `df -h`).
-3. **Registry** — `registry.py` lazy-loads `mainsail.applets.*` once, registering each module's `NAME` + `ALIASES` → `main` function.
-4. **Applet** — receives `argv` as a list, returns an exit code (0 success, 1 runtime error, 2 usage error). Reads stdin via `sys.stdin.buffer` for binary safety; writes via `sys.stdout` / `sys.stdout.buffer`.
+3. **Registry** — `registry.py` lazy-loads `mainsail.applets.*` once via `pkgutil.iter_modules`, registering each module's `NAME` + `ALIASES` → `main` function.
+4. **Applet** — receives `argv` as a list, returns an exit code (`0` success, `1` runtime error, `2` usage error). Reads stdin via `sys.stdin.buffer` for binary safety; writes via `sys.stdout` / `sys.stdout.buffer`.
 
 Adding a new applet means dropping a module into `mainsail/applets/` with the four-symbol contract. Auto-discovery picks it up on next launch.
 
@@ -190,43 +211,23 @@ Adding a new applet means dropping a module into `mainsail/applets/` with the fo
 pip install -e ".[dev]"            # install with test deps
 python -m pytest -q                # 268 unit tests
 python scripts/stress.py           # 23-case stress harness
-python scripts/stress.py dist/mainsail.exe --quick   # against frozen binary
+python scripts/stress.py dist/mainsail.exe --quick   # against a frozen binary
 ```
 
-### Building a standalone binary
+### Building
 
 ```bash
 pip install "Nuitka[onefile]"
-python build.py
-# -> dist/mainsail (Linux/macOS) or dist/mainsail.exe (Windows)
+python build.py                                    # full Nuitka binary
+python build.py --pyz                              # portable zipapp
+python build.py --preset slim                      # binary, slim preset
+python build.py --pyz --applets ls,cat,grep,awk    # custom zipapp
+python build.py --list-presets                     # show preset contents
 ```
 
-Output is a single self-contained executable: ~4.5 MB on Windows, ~6 MB on Linux. Compressed with zstandard. No Python needed at runtime.
+Output is a single self-contained executable: ~4.7 MB on Windows, ~5.5 MB on Linux glibc, ~6.3 MB on Linux musl. Compressed with zstandard. No Python needed at runtime.
 
-### Building the portable zipapp
-
-```bash
-python build.py --pyz
-# -> dist/mainsail.pyz (~80 KB, runs on any Python 3.8+)
-```
-
-No compilation, no dependencies. Useful for ESXi, exotic architectures, and any host that already has Python.
-
-### Custom applet subsets
-
-Trim the build to just the applets you want:
-
-```bash
-python build.py --preset slim                           # 39 applets, no archives/hashing
-python build.py --preset minimal                        # 18 applets, scripting essentials
-python build.py --applets ls,cat,grep,sed,awk           # hand-picked
-python build.py --pyz --applets ls,cat,grep,sed,awk     # same but zipapp
-python build.py --list-presets                          # see what's in each
-```
-
-Non-full builds land as `dist/mainsail-<suffix>` (or `.exe`, or `.pyz`). Savings are meaningful for the zipapp (44% smaller for minimal) but modest for the Nuitka binary (~3–5%) because the Python runtime is the bulk of the payload.
-
-CI matrix builds **ten native glibc binaries** (five full, five slim), **two zipapps** (`mainsail.pyz` full and `mainsail-slim.pyz`), and **one musl-linked Linux x64 binary** (`mainsail-linux-x64-musl`, built in Alpine, runs on Alpine/distroless musl systems) on every release tag.
+CI builds **ten native glibc binaries** (five full + five slim), **two zipapps** (full + slim), and **one musl-linked Linux x64 binary** on every release tag.
 
 ---
 
