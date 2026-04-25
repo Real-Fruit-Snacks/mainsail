@@ -2423,3 +2423,551 @@ def test_awk_f_script_file(invoke, workspace):
     rc, out, _ = invoke("awk", "-f", "script.awk", "f.txt")
     assert rc == 0
     assert out == "6\n10\n"
+
+
+# ─── tac ────────────────────────────────────────────────────────────
+
+def test_tac_reverses_lines(invoke, workspace):
+    (workspace / "f.txt").write_text("a\nb\nc\n")
+    rc, out, _ = invoke("tac", "f.txt")
+    assert rc == 0
+    assert out == "c\nb\na\n"
+
+
+def test_tac_handles_no_trailing_newline(invoke, workspace):
+    (workspace / "f.txt").write_bytes(b"a\nb\nc")
+    rc, out, _ = invoke("tac", "f.txt")
+    assert rc == 0
+    assert out == "c\nb\na"
+
+
+def test_tac_separator(invoke, workspace):
+    (workspace / "f.txt").write_text("1,2,3,4")
+    rc, out, _ = invoke("tac", "-s", ",", "f.txt")
+    assert rc == 0
+    assert out == "4,3,2,1"
+
+
+# ─── rev ────────────────────────────────────────────────────────────
+
+def test_rev_reverses_each_line(invoke, workspace):
+    (workspace / "f.txt").write_text("hello\nworld\n")
+    rc, out, _ = invoke("rev", "f.txt")
+    assert rc == 0
+    assert out == "olleh\ndlrow\n"
+
+
+def test_rev_preserves_empty_line(invoke, workspace):
+    (workspace / "f.txt").write_text("ab\n\ncd\n")
+    rc, out, _ = invoke("rev", "f.txt")
+    assert rc == 0
+    assert out == "ba\n\ndc\n"
+
+
+# ─── nl ─────────────────────────────────────────────────────────────
+
+def test_nl_numbers_non_empty_lines(invoke, workspace):
+    (workspace / "f.txt").write_text("alpha\n\nbeta\n")
+    rc, out, _ = invoke("nl", "f.txt")
+    assert rc == 0
+    # Default: "t" mode skips empty lines from numbering, width=6, sep=tab
+    assert "     1\talpha" in out
+    assert "     2\tbeta" in out
+
+
+def test_nl_all_lines_with_ba(invoke, workspace):
+    (workspace / "f.txt").write_text("a\n\nb\n")
+    rc, out, _ = invoke("nl", "-ba", "f.txt")
+    assert rc == 0
+    lines = [l for l in out.split("\n") if l]
+    assert lines[0].endswith("a")
+    assert "1" in lines[0]
+    assert "2" in lines[1]
+    assert "3" in lines[2]
+
+
+def test_nl_custom_width_separator(invoke, workspace):
+    (workspace / "f.txt").write_text("x\ny\n")
+    rc, out, _ = invoke("nl", "-w", "3", "-s", ": ", "f.txt")
+    assert rc == 0
+    assert out == "  1: x\n  2: y\n"
+
+
+# ─── mktemp ─────────────────────────────────────────────────────────
+
+def test_mktemp_creates_file(invoke, workspace):
+    rc, out, _ = invoke("mktemp", "tmp.XXXXXX")
+    assert rc == 0
+    path = Path(out.strip())
+    assert path.exists() and path.is_file()
+    path.unlink()
+
+
+def test_mktemp_directory(invoke, workspace):
+    rc, out, _ = invoke("mktemp", "-d", "tmp.XXXXXX")
+    assert rc == 0
+    path = Path(out.strip())
+    assert path.exists() and path.is_dir()
+    path.rmdir()
+
+
+def test_mktemp_dry_run(invoke, workspace):
+    rc, out, _ = invoke("mktemp", "-u", "tmp.XXXXXX")
+    assert rc == 0
+    path = Path(out.strip())
+    assert not path.exists()
+
+
+# ─── truncate ───────────────────────────────────────────────────────
+
+def test_truncate_extends_file(invoke, workspace):
+    f = workspace / "f.bin"
+    f.write_bytes(b"hi")
+    rc, _, _ = invoke("truncate", "-s", "10", str(f))
+    assert rc == 0
+    assert f.stat().st_size == 10
+
+
+def test_truncate_shrinks_file(invoke, workspace):
+    f = workspace / "f.bin"
+    f.write_bytes(b"x" * 100)
+    rc, _, _ = invoke("truncate", "-s", "5", str(f))
+    assert rc == 0
+    assert f.stat().st_size == 5
+
+
+def test_truncate_relative_grow(invoke, workspace):
+    f = workspace / "f.bin"
+    f.write_bytes(b"a" * 5)
+    rc, _, _ = invoke("truncate", "-s", "+10", str(f))
+    assert rc == 0
+    assert f.stat().st_size == 15
+
+
+def test_truncate_with_K_suffix(invoke, workspace):
+    f = workspace / "f.bin"
+    f.write_bytes(b"")
+    rc, _, _ = invoke("truncate", "-s", "1K", str(f))
+    assert rc == 0
+    assert f.stat().st_size == 1024
+
+
+# ─── paste ──────────────────────────────────────────────────────────
+
+def test_paste_round_robin(invoke, workspace):
+    (workspace / "a.txt").write_text("1\n2\n3\n")
+    (workspace / "b.txt").write_text("x\ny\nz\n")
+    rc, out, _ = invoke("paste", "a.txt", "b.txt")
+    assert rc == 0
+    assert out == "1\tx\n2\ty\n3\tz\n"
+
+
+def test_paste_custom_delimiter(invoke, workspace):
+    (workspace / "a.txt").write_text("1\n2\n")
+    (workspace / "b.txt").write_text("x\ny\n")
+    rc, out, _ = invoke("paste", "-d", ",", "a.txt", "b.txt")
+    assert rc == 0
+    assert out == "1,x\n2,y\n"
+
+
+def test_paste_serial_mode(invoke, workspace):
+    (workspace / "a.txt").write_text("1\n2\n3\n")
+    rc, out, _ = invoke("paste", "-d", ",", "-s", "a.txt")
+    assert rc == 0
+    assert out == "1,2,3\n"
+
+
+# ─── split ──────────────────────────────────────────────────────────
+
+def test_split_by_lines(invoke, workspace, monkeypatch):
+    monkeypatch.chdir(workspace)
+    (workspace / "f.txt").write_text("\n".join(str(i) for i in range(10)) + "\n")
+    rc, _, _ = invoke("split", "-l", "3", "f.txt", "out_")
+    assert rc == 0
+    assert (workspace / "out_aa").exists()
+    assert (workspace / "out_ab").exists()
+    assert (workspace / "out_aa").read_text() == "0\n1\n2\n"
+
+
+def test_split_by_bytes(invoke, workspace, monkeypatch):
+    monkeypatch.chdir(workspace)
+    (workspace / "f.bin").write_bytes(b"x" * 25)
+    rc, _, _ = invoke("split", "-b", "10", "f.bin", "p_")
+    assert rc == 0
+    assert (workspace / "p_aa").stat().st_size == 10
+    assert (workspace / "p_ab").stat().st_size == 10
+    assert (workspace / "p_ac").stat().st_size == 5
+
+
+def test_split_numeric_suffix(invoke, workspace, monkeypatch):
+    monkeypatch.chdir(workspace)
+    (workspace / "f.txt").write_text("a\nb\nc\nd\n")
+    rc, _, _ = invoke("split", "-d", "-l", "2", "f.txt", "n_")
+    assert rc == 0
+    assert (workspace / "n_00").exists()
+    assert (workspace / "n_01").exists()
+
+
+# ─── cmp ────────────────────────────────────────────────────────────
+
+def test_cmp_identical_files(invoke, workspace):
+    (workspace / "a").write_bytes(b"hello")
+    (workspace / "b").write_bytes(b"hello")
+    rc, _, _ = invoke("cmp", "a", "b")
+    assert rc == 0
+
+
+def test_cmp_different_files(invoke, workspace):
+    (workspace / "a").write_bytes(b"hello")
+    (workspace / "b").write_bytes(b"hellx")
+    rc, out, _ = invoke("cmp", "a", "b")
+    assert rc == 1
+    assert "byte 5" in out
+
+
+def test_cmp_silent_flag(invoke, workspace):
+    (workspace / "a").write_bytes(b"abc")
+    (workspace / "b").write_bytes(b"abd")
+    rc, out, _ = invoke("cmp", "-s", "a", "b")
+    assert rc == 1
+    assert out == ""
+
+
+# ─── comm ───────────────────────────────────────────────────────────
+
+def test_comm_three_columns(invoke, workspace):
+    (workspace / "a").write_text("alice\nbob\ncarol\n")
+    (workspace / "b").write_text("bob\ncarol\ndan\n")
+    rc, out, _ = invoke("comm", "a", "b")
+    assert rc == 0
+    # comm emits records in merge order: alice (a-only), bob (both),
+    # carol (both), dan (b-only). col1=no-prefix, col2=tab, col3=2 tabs.
+    assert out == "alice\n\t\tbob\n\t\tcarol\n\tdan\n"
+
+
+def test_comm_suppress_columns(invoke, workspace):
+    (workspace / "a").write_text("a\nb\n")
+    (workspace / "b").write_text("b\nc\n")
+    rc, out, _ = invoke("comm", "-12", "a", "b")  # only common
+    assert rc == 0
+    assert out == "b\n"
+
+
+# ─── expand / unexpand ──────────────────────────────────────────────
+
+def test_expand_default_8(invoke, workspace):
+    (workspace / "f.txt").write_text("a\tb\n")
+    rc, out, _ = invoke("expand", "f.txt")
+    assert rc == 0
+    assert out == "a       b\n"
+
+
+def test_expand_custom_tabs(invoke, workspace):
+    (workspace / "f.txt").write_text("ab\tc\n")
+    rc, out, _ = invoke("expand", "-t", "4", "f.txt")
+    assert rc == 0
+    # ab is at col 0..1, tab to col 4 = 2 spaces
+    assert out == "ab  c\n"
+
+
+def test_unexpand_leading_tabs(invoke, workspace):
+    (workspace / "f.txt").write_text("        hello\n")
+    rc, out, _ = invoke("unexpand", "f.txt")
+    assert rc == 0
+    assert out == "\thello\n"
+
+
+def test_unexpand_default_only_leading(invoke, workspace):
+    # Default unexpand only converts leading whitespace
+    (workspace / "f.txt").write_text("ab        cd\n")
+    rc, out, _ = invoke("unexpand", "f.txt")
+    assert rc == 0
+    # Internal spaces left alone
+    assert out == "ab        cd\n"
+
+
+# ─── getopt ─────────────────────────────────────────────────────────
+
+def test_getopt_short_options(invoke, workspace):
+    rc, out, _ = invoke("getopt", "-o", "ab:c", "--", "-a", "-b", "value", "-c", "rest")
+    assert rc == 0
+    assert "-a" in out
+    assert "-b" in out
+    assert "value" in out
+    assert "-c" in out
+    assert "rest" in out
+
+
+def test_getopt_long_options(invoke, workspace):
+    rc, out, _ = invoke("getopt", "-o", "h", "--long", "verbose,output:",
+                        "--", "--verbose", "--output", "log.txt", "input")
+    assert rc == 0
+    assert "--verbose" in out
+    assert "--output" in out
+    assert "log.txt" in out
+    assert "input" in out
+
+
+def test_getopt_missing_required_arg(invoke, workspace):
+    rc, _, _ = invoke("getopt", "-o", "a:", "--", "-a")
+    assert rc == 1
+
+
+# ─── http ───────────────────────────────────────────────────────────
+
+def test_http_help(invoke, workspace):
+    rc, out, _ = invoke("http", "--help")
+    assert rc == 0
+    assert "http -" in out
+
+
+def test_http_missing_url(invoke, workspace):
+    rc, _, _ = invoke("http")
+    assert rc == 2
+
+
+# Note: live HTTP request tests would need network access in CI; we
+# trust the urllib backend and only validate arg parsing here.
+
+
+# ─── dig ────────────────────────────────────────────────────────────
+
+def test_dig_help(invoke, workspace):
+    rc, out, _ = invoke("dig", "--help")
+    assert rc == 0
+    assert "dig -" in out
+
+
+def test_dig_missing_name(invoke, workspace):
+    rc, _, _ = invoke("dig")
+    assert rc == 2
+
+
+def test_dig_unknown_type(invoke, workspace):
+    rc, _, errtxt = invoke("dig", "-t", "BOGUS", "example.com")
+    assert rc == 2
+    assert "unknown query type" in errtxt
+
+
+def test_dig_arpa_helper(invoke, workspace):
+    # Test the wire-format builders via importing — no network needed.
+    from mainsail.applets.dig import _arpa_for_ip, _build_query
+    assert _arpa_for_ip("8.8.4.4") == "4.4.8.8.in-addr.arpa"
+    assert _arpa_for_ip("not.an.ip") is None
+    q = _build_query(0xABCD, "example.com", 1)
+    assert q[:2] == b"\xab\xcd"
+    assert b"example" in q
+    assert b"com" in q
+
+
+# ─── jq ─────────────────────────────────────────────────────────────
+
+def test_jq_identity(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b'{"a":1}\n')
+    rc, out, _ = invoke("jq", ".")
+    assert rc == 0
+    assert '"a": 1' in out
+
+
+def test_jq_field(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b'{"name":"alice","age":30}\n')
+    rc, out, _ = invoke("jq", "-r", ".name")
+    assert rc == 0
+    assert out == "alice\n"
+
+
+def test_jq_chained_field(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b'{"a":{"b":{"c":42}}}\n')
+    rc, out, _ = invoke("jq", ".a.b.c")
+    assert rc == 0
+    assert out.strip() == "42"
+
+
+def test_jq_array_iter(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"[1,2,3]\n")
+    rc, out, _ = invoke("jq", "-c", ".[]")
+    assert rc == 0
+    assert out.split("\n")[:3] == ["1", "2", "3"]
+
+
+def test_jq_array_index(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b'["x","y","z"]\n')
+    rc, out, _ = invoke("jq", "-r", ".[1]")
+    assert rc == 0
+    assert out == "y\n"
+
+
+def test_jq_array_slice(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"[10,20,30,40,50]\n")
+    rc, out, _ = invoke("jq", "-c", ".[1:4]")
+    assert rc == 0
+    assert out.strip() == "[20,30,40]"
+
+
+def test_jq_pipe(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b'[{"name":"alice"},{"name":"bob"}]\n')
+    rc, out, _ = invoke("jq", "-r", ".[] | .name")
+    assert rc == 0
+    assert out == "alice\nbob\n"
+
+
+def test_jq_select(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b'[{"x":1},{"x":7},{"x":3}]\n')
+    rc, out, _ = invoke("jq", "-c", ".[] | select(.x > 5)")
+    assert rc == 0
+    assert out.strip() == '{"x":7}'
+
+
+def test_jq_map(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b'[{"n":1},{"n":2},{"n":3}]\n')
+    rc, out, _ = invoke("jq", "-c", "map(.n*10)")
+    assert rc == 0
+    assert out.strip() == "[10,20,30]"
+
+
+def test_jq_keys(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b'{"b":2,"a":1,"c":3}\n')
+    rc, out, _ = invoke("jq", "-c", "keys")
+    assert rc == 0
+    assert out.strip() == '["a","b","c"]'
+
+
+def test_jq_length_string(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b'"hello"\n')
+    rc, out, _ = invoke("jq", "length")
+    assert rc == 0
+    assert out.strip() == "5"
+
+
+def test_jq_length_array(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"[1,2,3,4]\n")
+    rc, out, _ = invoke("jq", "length")
+    assert rc == 0
+    assert out.strip() == "4"
+
+
+def test_jq_type(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b'[1,"x",true,null,[],{}]\n')
+    rc, out, _ = invoke("jq", "-r", ".[] | type")
+    assert rc == 0
+    assert out.split("\n")[:6] == ["number", "string", "boolean", "null", "array", "object"]
+
+
+def test_jq_object_ctor(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b'{"first":"alice","last":"bob"}\n')
+    rc, out, _ = invoke("jq", "-c", "{name: .first, surname: .last}")
+    assert rc == 0
+    assert out.strip() == '{"name":"alice","surname":"bob"}'
+
+
+def test_jq_array_ctor(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b'[{"id":1},{"id":2},{"id":3}]\n')
+    rc, out, _ = invoke("jq", "-c", "[.[] | .id]")
+    assert rc == 0
+    assert out.strip() == "[1,2,3]"
+
+
+def test_jq_compact(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b'{"a":1,"b":2}\n')
+    rc, out, _ = invoke("jq", "-c", ".")
+    assert rc == 0
+    assert out.strip() == '{"a":1,"b":2}'
+
+
+def test_jq_raw_output(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b'{"name":"alice"}\n')
+    rc, out, _ = invoke("jq", "-r", ".name")
+    assert rc == 0
+    assert out == "alice\n"
+
+
+def test_jq_slurp(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"1\n2\n3\n")
+    rc, out, _ = invoke("jq", "-s", "length")
+    assert rc == 0
+    assert out.strip() == "3"
+
+
+def test_jq_alternative(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b'{"present":42}\n')
+    rc, out, _ = invoke("jq", '-r', '.missing // "default"')
+    assert rc == 0
+    assert out == "default\n"
+
+
+def test_jq_if_then_else(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b'{"x":true}\n')
+    rc, out, _ = invoke("jq", "-r", 'if .x then "yes" else "no" end')
+    assert rc == 0
+    assert out == "yes\n"
+
+
+def test_jq_comma(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b'{"a":1,"b":2}\n')
+    rc, out, _ = invoke("jq", "-c", ".a, .b")
+    assert rc == 0
+    assert out.split("\n")[:2] == ["1", "2"]
+
+
+def test_jq_add(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b'{"nums":[1,2,3,4]}\n')
+    rc, out, _ = invoke("jq", ".nums | add")
+    assert rc == 0
+    assert out.strip() == "10"
+
+
+def test_jq_sort(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"[3,1,2]\n")
+    rc, out, _ = invoke("jq", "-c", "sort")
+    assert rc == 0
+    assert out.strip() == "[1,2,3]"
+
+
+def test_jq_sort_by(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b'[{"n":3},{"n":1},{"n":2}]\n')
+    rc, out, _ = invoke("jq", "-c", "sort_by(.n)")
+    assert rc == 0
+    assert out.strip() == '[{"n":1},{"n":2},{"n":3}]'
+
+
+def test_jq_unique(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"[3,1,2,1,3,2]\n")
+    rc, out, _ = invoke("jq", "-c", "unique")
+    assert rc == 0
+    assert out.strip() == "[1,2,3]"
+
+
+def test_jq_to_from_entries(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b'{"a":1,"b":2}\n')
+    rc, out, _ = invoke("jq", "-c", "to_entries | from_entries")
+    assert rc == 0
+    assert out.strip() == '{"a":1,"b":2}'
+
+
+def test_jq_string_split_join(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b'"a,b,c"\n')
+    rc, out, _ = invoke("jq", "-c", 'split(",") | join("-")')
+    assert rc == 0
+    assert out.strip() == '"a-b-c"'
+
+
+def test_jq_startswith(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b'"hello world"\n')
+    rc, out, _ = invoke("jq", 'startswith("hello")')
+    assert rc == 0
+    assert out.strip() == "true"
+
+
+def test_jq_unknown_function(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"null\n")
+    rc, _, errtxt = invoke("jq", "bogus_fn")
+    assert rc == 5
+    assert "unknown function" in errtxt
+
+
+def test_jq_parse_error(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"null\n")
+    rc, _, errtxt = invoke("jq", ".[")  # unterminated
+    assert rc == 3
+    assert "compile error" in errtxt
+

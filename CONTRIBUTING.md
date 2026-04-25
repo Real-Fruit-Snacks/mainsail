@@ -17,7 +17,7 @@ pip install -e ".[dev]"          # editable install with test deps
 
 ```bash
 python -m pytest -q              # 268 unit tests
-python -m mainsail --list        # should print all 51 applets
+python -m mainsail --list        # should print all 66 applets
 ```
 
 **Stress harness** (slower; exercises large inputs, Unicode, pipelines,

@@ -7,6 +7,76 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-04-25
+
+This is the **"why mainsail over BusyBox"** release. 15 new applets,
+including a real `jq` for JSON, an HTTP client, and a DNS resolver.
+The applet count goes from 51 to **66**, and the test suite from 268 to
+**337** (69 new tests).
+
+### Added — JSON
+- `jq` (~900 lines) — practical subset of the jq language. Supports:
+  pipes, comma, alternatives (`//`), comparison/arithmetic, object
+  `{a: .x}` and array `[.[] | .y]` constructors, slices and iterators,
+  `if`/`then`/`elif`/`else`/`end`, and 40+ built-in functions
+  (`length`, `keys`, `keys_unsorted`, `values`, `type`, `has`, `in`,
+  `contains`, `select`, `map`, `map_values`, `sort`, `sort_by`,
+  `unique`, `unique_by`, `reverse`, `first`, `last`, `min`, `max`,
+  `add`, `to_entries`, `from_entries`, `with_entries`, `paths`,
+  `leaf_paths`, `tostring`, `tonumber`, `split`, `join`, `ltrimstr`,
+  `rtrimstr`, `startswith`, `endswith`, `ascii_downcase`,
+  `ascii_upcase`, `floor`, `ceil`, `sqrt`, `any`, `all`, `isempty`,
+  `empty`, `not`, `ascii`, `explode`, `implode`).
+  CLI flags: `-r` raw, `-c` compact, `-S` sort-keys, `--tab`,
+  `-s` slurp, `-n` null-input, `-R` raw-input, `-e` exit-status, `-j` join.
+
+### Added — Network
+- `http` — minimal curl-equivalent built on stdlib `urllib`.
+  GET/POST/PUT/DELETE/HEAD, custom headers, body literal or `@file`,
+  `--json` shortcut, redirect-following on by default, `-i` include
+  headers, `-I` HEAD-only, `-o` write to file, `-f` fail on HTTP errors,
+  `--timeout`, `-A` user-agent, `-s` silent.
+- `dig` — DNS resolver crafting wire-format queries directly via
+  stdlib `socket`. Supports A, AAAA, MX, TXT, CNAME, NS, SOA, PTR,
+  ANY records. Reads `/etc/resolv.conf` or falls back to 1.1.1.1.
+  Flags: `@server`, `-x ADDR` reverse lookup, `+short`, `-t TYPE`,
+  `--timeout`.
+
+### Added — BusyBox parity
+- `tac` — concatenate and print files in reverse (`-s` separator,
+  `-b` separator-before).
+- `rev` — reverse each line characterwise.
+- `nl` — number lines with body-numbering style (`-ba`/`-bt`/`-bn`),
+  width, separator, starting line, increment.
+- `mktemp` — create unique temp file or directory (`-d`, `-u`, `-q`,
+  `-t`, `-p`).
+- `truncate` — set file size with absolute, relative, or operator
+  forms (`+N`, `-N`, `<N`, `>N`, `/N`, `%N`); K/M/G/T/P suffixes.
+- `paste` — merge corresponding lines side-by-side (default TAB);
+  `-d` cycling delimiters, `-s` serial.
+- `split` — split a file into pieces by lines (`-l`) or bytes (`-b`),
+  alphabetic or numeric (`-d`) suffixes, custom suffix length (`-a`),
+  additional suffix.
+- `cmp` — byte compare two files. `-s` silent, `-l` verbose,
+  `-b` print bytes, `-n` byte limit, `-i` skip prefix.
+- `comm` — line compare two sorted files into 3 columns. `-1`/`-2`/`-3`
+  (and combinations like `-12`, `-123`) suppress columns;
+  `--check-order`/`--nocheck-order`, `--output-delimiter`.
+- `expand` — convert tabs to spaces with custom tab stops (`-t`),
+  initial-only mode (`-i`).
+- `unexpand` — convert spaces to tabs; `-a` for all whitespace,
+  default for leading-only.
+- `getopt` — POSIX/GNU shell-script option parser. Short and long
+  options, required and optional arguments, abbreviation, output
+  shell-quoted via `shlex.quote` for safe `eval`.
+
+### Changed
+- Hero copy now leads with **66 utilities** and the JSON / HTTP / DNS
+  trifecta. Bento card "Real Applets" calls out `jq` features.
+- New "JSON & data" and "Network" pill groups in the docs site.
+- README applet table reorganised; `truncate`/`mktemp` in File ops,
+  the new text applets in Text, dedicated rows for JSON and Network.
+
 ## [0.1.15] - 2026-04-25
 
 ### Fixed
@@ -236,7 +306,8 @@ Initial release.
 - GitHub Actions CI matrix: Linux / macOS / Windows × Python 3.10–3.13
 - Release workflow that builds and publishes binaries on tag push
 
-[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.15...HEAD
+[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.2.0
 [0.1.15]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.15
 [0.1.14]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.14
 [0.1.13]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.13

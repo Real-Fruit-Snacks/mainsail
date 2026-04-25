@@ -664,4 +664,236 @@ Usage: sha512sum [OPTION]... [FILE...]
 
 Print or check SHA-512 digests. Same options as md5sum; tag label is SHA512.
 """,
+    # ---- v0.2.0 additions: parity ------------------------------------------
+    "tac": """\
+Usage: tac [OPTION]... [FILE...]
+
+Concatenate FILE(s) and print in reverse — last line first.
+
+Options:
+  -s, --separator=STR   use STR as the record separator (default: newline)
+  -b, --before          attach the separator before each record (default after)
+  -r, --regex           accepted for compatibility (treated as literal here)
+""",
+    "rev": """\
+Usage: rev [FILE...]
+
+Reverse the characters in every line. Trailing newline (LF or CRLF) is
+preserved; only the line content is flipped.
+""",
+    "nl": """\
+Usage: nl [OPTION]... [FILE...]
+
+Number lines of FILE (or stdin), writing the result to stdout.
+
+Options:
+  -b, --body-numbering=STYLE   STYLE: a (all), t (non-empty, default), n (none)
+  -ba / -bt / -bn              shorthand for the three styles
+  -w, --number-width=N         column width for the number (default 6)
+  -s, --number-separator=STR   separator after the number (default TAB)
+  -v, --starting-line-number=N start counting at N (default 1)
+  -i, --line-increment=N       step between numbers (default 1)
+""",
+    "mktemp": """\
+Usage: mktemp [OPTION]... [TEMPLATE]
+
+Create a unique temporary file or directory. TEMPLATE must contain at
+least three trailing X's (default tmp.XXXXXXXXXX, in the current dir).
+
+Options:
+  -d, --directory       create a directory, not a file
+  -u, --dry-run         only output the name; don't create the file
+  -q, --quiet           suppress diagnostic messages
+  -t                    interpret TEMPLATE relative to $TMPDIR
+  -p, --tmpdir[=DIR]    use DIR as the prefix (default $TMPDIR)
+""",
+    "truncate": """\
+Usage: truncate -s SIZE FILE...
+       truncate -r REF FILE...
+
+Shrink or extend each FILE to SIZE.
+
+Options:
+  -s, --size=SIZE       absolute size, or operator+number:
+                        =N (set), +N (grow), -N (shrink), <N (cap),
+                        >N (floor), /N (round down to multiple),
+                        %N (round up to multiple). Suffixes K, M, G, T, P
+                        multiply by 1024.
+  -r, --reference=REF   use REF's size as SIZE
+  -c, --no-create       don't create FILE if it doesn't exist
+""",
+    "paste": """\
+Usage: paste [-s] [-d LIST] [FILE...]
+
+Merge corresponding lines of files, separated by TAB (default). Treat
+'-' as standard input.
+
+Options:
+  -d, --delimiters=LIST  cycle through LIST instead of TAB
+  -s, --serial           paste one file at a time, not in parallel
+""",
+    "split": """\
+Usage: split [OPTION]... [FILE [PREFIX]]
+
+Split FILE into pieces named PREFIXaa, PREFIXab, … (default PREFIX 'x').
+Read stdin if FILE is '-' or absent.
+
+Options:
+  -l, --lines=N           N lines per piece (default 1000)
+  -b, --bytes=SIZE        SIZE bytes per piece (suffix K/M/G accepted)
+  -a, --suffix-length=N   suffix is N letters (default 2)
+  -d, --numeric-suffixes  use 00, 01, … instead of aa, ab, …
+  --additional-suffix=S   append literal S to each output name
+  -NUM                    same as -l NUM
+""",
+    "cmp": """\
+Usage: cmp [OPTION]... FILE1 FILE2 [SKIP1 [SKIP2]]
+
+Compare FILE1 and FILE2 byte by byte. Exit 0 on identical, 1 on
+differing, 2 on error.
+
+Options:
+  -s, --silent / --quiet  no output; rely on exit code
+  -b, --print-bytes       print the differing bytes
+  -l, --verbose           print every difference (offset and bytes)
+  -n, --bytes=N           compare at most N bytes
+  -i SKIP[:SKIP2]         skip the first SKIP bytes of each file
+""",
+    "comm": """\
+Usage: comm [OPTION]... FILE1 FILE2
+
+Compare two SORTED files line by line. Output three columns:
+  col 1: lines only in FILE1
+  col 2: lines only in FILE2
+  col 3: lines in both
+
+Options:
+  -1                      suppress column 1
+  -2                      suppress column 2
+  -3                      suppress column 3
+  -12, -13, -23, -123     combine the above
+  --check-order /
+  --nocheck-order         enable/disable sortedness check
+  --output-delimiter=STR  use STR between columns (default TAB)
+""",
+    "expand": """\
+Usage: expand [OPTION]... [FILE...]
+
+Convert TABs to spaces. Default tab stops every 8 columns.
+
+Options:
+  -t, --tabs=N         tab stops every N columns
+  -t, --tabs=LIST      explicit comma- or space-separated tab stops
+  -i, --initial        only convert leading TABs
+  -NUM                 shorthand for --tabs=NUM
+""",
+    "unexpand": """\
+Usage: unexpand [OPTION]... [FILE...]
+
+Convert spaces to TABs (default: only leading whitespace).
+
+Options:
+  -t, --tabs=N            tab stops every N columns; implies -a
+  -t, --tabs=LIST         explicit tab stop positions; implies -a
+  -a, --all               convert all whitespace, not just leading
+  --first-only            only convert leading whitespace (the default)
+""",
+    "getopt": """\
+Usage: getopt -o SHORT [--long LONG] -- ARG...
+
+POSIX/GNU-style option parser intended to be source-quoted in shell
+scripts. Output is shell-quoted via Python's shlex.quote so it is safe
+to `eval`.
+
+Options:
+  -o, --options=OPTSTR        short-option spec; suffix ':' = required arg,
+                              '::' = optional arg
+  -l, --long, --longoptions=L comma-separated long options; same suffix rules
+  -u, --unquoted              emit unquoted output
+  -T, --test                  exit 4 (signal: enhanced getopt available)
+  -a, --alternative           accept long options with single '-'
+""",
+    # ---- v0.2.0 additions: network -----------------------------------------
+    "http": """\
+Usage: http [OPTION]... URL
+
+Minimal HTTP client built on stdlib urllib. Returns the response body
+on stdout; exit code 0 on success, 22 on HTTP >= 400 with --fail.
+
+Options:
+  -X, --request=METHOD      HTTP method (default GET, or POST if -d / --json)
+  -H, --header='K: V'       add a request header (repeatable)
+  -d, --data=DATA           request body literal, or '@file' to read from file
+  --json=DATA               JSON body (sets Content-Type: application/json)
+  -o, --output=FILE         write body to FILE
+  -i, --include             include response headers in stdout
+  -I, --head                HEAD-only request
+  -L, --location            follow redirects (default)
+  --no-location             do not follow redirects
+  -s, --silent              suppress error output
+  -f, --fail                exit non-zero on HTTP errors
+  -A, --user-agent=UA       set User-Agent header
+  --timeout=SECS            request timeout (default 30)
+""",
+    "dig": """\
+Usage: dig [@server] [-x ADDR] [TYPE] NAME [+short] [+trace]
+
+Resolve DNS records for NAME. Crafts wire-format queries directly via
+stdlib socket — no third-party DNS library required.
+
+Options:
+  @server          query the given server (default: /etc/resolv.conf
+                   or 1.1.1.1)
+  -t, --type TYPE  record type (A, AAAA, MX, TXT, CNAME, NS, SOA, PTR, ANY)
+  -x ADDR          reverse lookup the given IPv4 or IPv6 address
+  +short           print only the answer values
+  +trace           accepted for compatibility (no-op)
+  --timeout SECS   per-query timeout (default 5)
+
+The first positional non-option that matches a record type is taken as
+the type; any other positional is the name. So `dig MX gmail.com` and
+`dig gmail.com MX` both work.
+""",
+    # ---- v0.2.0 additions: JSON --------------------------------------------
+    "jq": """\
+Usage: jq [OPTION]... FILTER [FILE...]
+
+Parse FILTER as a jq expression and apply it to JSON input from FILE
+(or stdin). Emits zero or more JSON outputs per input.
+
+Output formatting:
+  -r, --raw-output       strip outer quotes from string outputs
+  -c, --compact-output   single-line JSON, no extra whitespace
+  --tab                  indent with TAB instead of two spaces
+  -S, --sort-keys        sort object keys in output
+  -j                     join: implies -r and skips trailing newlines
+
+Input handling:
+  -s, --slurp            read all inputs into one array first
+  -n, --null-input       use null as the only input (no stdin/file read)
+  -R, --raw-input        treat each input line as a raw string
+  -e, --exit-status      non-zero exit if last output is null/false/empty
+
+Supported filter syntax:
+  Identity (.), field access (.foo, ."key with space"),
+  optional access (.foo?), array index/slice (.[0], .[-1], .[2:5]),
+  iteration (.[]), pipes (|), comma (,), alternatives (//),
+  parentheses, comparison and arithmetic operators,
+  if/then/elif/else/end, object {a:.x} and array [.[] | .y] constructors,
+  try-suffix (?).
+
+Built-in functions:
+  length, keys, keys_unsorted, values, type, has, in, contains,
+  empty, not, select, map, map_values, sort, sort_by, unique,
+  unique_by, reverse, first, last, min, max, add, to_entries,
+  from_entries, with_entries, paths, leaf_paths, tostring,
+  tonumber, ascii, explode, implode, split, join, ltrimstr,
+  rtrimstr, startswith, endswith, ascii_downcase, ascii_upcase,
+  floor, ceil, sqrt, any, all, isempty.
+
+Not implemented: user-defined functions (def), variable bindings
+(as $x), update operators (|=, +=, etc.), recursive descent (..),
+format strings (@csv, @json, @sh), regex functions (test, match,
+capture, scan, sub, gsub).
+""",
 }

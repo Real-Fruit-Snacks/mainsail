@@ -13,7 +13,7 @@ body:
     attributes:
       label: mainsail version
       description: "Output of `mainsail --version`"
-      placeholder: "mainsail 0.1.15"
+      placeholder: "mainsail 0.2.0"
     validations:
       required: true
 

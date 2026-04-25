@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>mainsail — Unix utilities, in one binary</title>
-    <meta name="description" content="51 POSIX utilities — ls, cat, grep, sed, awk, tar — bundled into a single ~5 MB binary. Native Windows support, no WSL required. Six native binaries (Linux/Windows × x86_64/ARM64, macOS ARM64, Alpine/musl Linux x64) plus a portable zipapp for ESXi.">
+    <meta name="description" content="66 utilities — POSIX coreutils plus jq for JSON, an HTTP client, a DNS resolver — bundled into a single ~5 MB binary. Native Windows support, no WSL required. Six native binaries plus a portable zipapp for ESXi.">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='16' y='24' text-anchor='middle' font-family='Inter,sans-serif' font-size='24' font-weight='800' fill='%2374c7ec'%3EM%3C/text%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -152,7 +152,7 @@
         <div class="container">
             <div class="hero-logo animate"><img src="assets/logo-dark.svg" alt="mainsail"></div>
             <h1 class="hero-tagline animate" style="transition-delay:.1s">Unix utilities, in one binary, anywhere.</h1>
-            <p class="hero-desc animate" style="transition-delay:.2s">51 POSIX tools — ls, cat, grep, sed, awk, tar — bundled into a single ~5 MB executable. Native Windows support without WSL, Cygwin, or git-bash. Six native binaries (Linux/Windows × x86_64/ARM64, macOS ARM64, Alpine/musl Linux x64) plus an 80 KB portable zipapp for ESXi and restricted environments.</p>
+            <p class="hero-desc animate" style="transition-delay:.2s">66 utilities — the POSIX coreutils plus a real <code style="background:rgba(116,199,236,0.15);padding:1px 6px;border-radius:3px;color:var(--accent1)">jq</code> for JSON, an HTTP client, and a DNS resolver — bundled into a single ~5 MB executable. Native Windows support without WSL, Cygwin, or git-bash. Six native binaries plus a portable zipapp for ESXi.</p>
             <div class="hero-ctas animate" style="transition-delay:.3s">
                 <a href="https://github.com/Real-Fruit-Snacks/mainsail/releases/latest" class="btn-primary">Download Latest</a>
                 <a href="https://github.com/Real-Fruit-Snacks/mainsail" class="btn-secondary">View Source</a>
@@ -182,9 +182,9 @@
     <!-- Stats -->
     <div class="container">
         <div class="stats animate">
-            <div class="stat"><div class="stat-num" data-target="51">0</div><div class="stat-label">Applets</div></div>
+            <div class="stat"><div class="stat-num" data-target="66">0</div><div class="stat-label">Applets</div></div>
             <div class="stat-div"></div>
-            <div class="stat"><div class="stat-num" data-target="268">0</div><div class="stat-label">Tests</div></div>
+            <div class="stat"><div class="stat-num" data-target="337">0</div><div class="stat-label">Tests</div></div>
             <div class="stat-div"></div>
             <div class="stat"><div class="stat-num" data-target="5" data-suffix="MB">0</div><div class="stat-label">Binary</div></div>
             <div class="stat-div"></div>
@@ -204,9 +204,9 @@
 
             <div class="bento">
                 <div class="bento-card bento-hero animate" style="transition-delay:.1s">
-                    <h3>One Binary, Fifty-One Utilities</h3>
-                    <p>Every common shell tool dispatched through a single executable. Multi-call mode lets you hardlink to applet names so <code>ls</code> just works.</p>
-                    <div class="mini-terminal"><span class="t-g">$</span> mainsail --list | wc -l<br><span class="t-b">51</span><br><span class="t-g">$</span> ln mainsail ls && ./ls -la</div>
+                    <h3>One Binary, 66 Utilities</h3>
+                    <p>Every common shell tool dispatched through a single executable — POSIX coreutils plus <code>jq</code>, <code>http</code>, and <code>dig</code>. Multi-call mode lets you hardlink to applet names so <code>ls</code> just works.</p>
+                    <div class="mini-terminal"><span class="t-g">$</span> mainsail --list | wc -l<br><span class="t-b">66</span><br><span class="t-g">$</span> ln mainsail ls && ./ls -la</div>
                 </div>
                 <div class="bento-card bento-stat animate" style="transition-delay:.18s">
                     <div class="big">~5<span style="font-size:24px">MB</span></div>
@@ -218,14 +218,14 @@
                 </div>
                 <div class="bento-card animate" style="transition-delay:.28s">
                     <h3 style="color:var(--green)">Real Applets</h3>
-                    <p><code>find</code> with <code>-exec</code>, <code>-prune</code>, parens, boolean ops. <code>sed</code> with addresses and in-place edit. <code>awk</code> with BEGIN/END, patterns, arrays, gsub. <code>tar</code> with compression filters.</p>
+                    <p><code>find</code> with <code>-exec</code>, <code>-prune</code>, parens, boolean ops. <code>sed</code> with addresses and in-place edit. <code>awk</code> with BEGIN/END, patterns, arrays, gsub. <code>jq</code> with pipes, select, map, sort_by, 40+ built-ins.</p>
                 </div>
                 <div class="bento-card animate" style="transition-delay:.36s">
                     <h3 style="color:var(--peach)">Pipeline-Grade I/O</h3>
                     <p>Binary-safe through <code>cat</code>/<code>tee</code>/<code>gzip</code>. <code>tail -f</code> with rotation detection. <code>xargs -0</code> for paths with backslashes.</p>
                 </div>
                 <div class="bento-card bento-stat animate" style="transition-delay:.1s">
-                    <div class="big" style="color:var(--teal)">268</div>
+                    <div class="big" style="color:var(--teal)">337</div>
                     <div class="label">Unit Tests</div>
                 </div>
                 <div class="bento-card bento-hero animate" style="transition-delay:.18s">
@@ -253,7 +253,7 @@
     <section id="applets" style="background:var(--mantle)">
         <div class="container">
             <div class="section-label animate">APPLETS</div>
-            <h2 class="section-title animate" style="transition-delay:.08s">All 51, organized</h2>
+            <h2 class="section-title animate" style="transition-delay:.08s">All 66, organized</h2>
             <p class="section-desc animate" style="transition-delay:.16s">Each applet implements common POSIX flags. Run <code>mainsail &lt;applet&gt; --help</code> for per-applet usage.</p>
 
             <div class="pill-group animate">
@@ -269,6 +269,8 @@
                     <div class="pill">chmod</div>
                     <div class="pill">ln</div>
                     <div class="pill">stat</div>
+                    <div class="pill">truncate</div>
+                    <div class="pill">mktemp</div>
                 </div>
             </div>
 
@@ -276,13 +278,17 @@
                 <div class="pill-group-label">Text processing</div>
                 <div class="pills">
                     <div class="pill">cat<span class="alias">type</span></div>
+                    <div class="pill">tac</div>
+                    <div class="pill">rev</div>
                     <div class="pill">grep</div>
                     <div class="pill">head</div>
                     <div class="pill">tail</div>
                     <div class="pill">wc</div>
+                    <div class="pill">nl</div>
                     <div class="pill">sort</div>
                     <div class="pill">uniq</div>
                     <div class="pill">cut</div>
+                    <div class="pill">paste</div>
                     <div class="pill">tr</div>
                     <div class="pill">sed</div>
                     <div class="pill">awk</div>
@@ -290,6 +296,26 @@
                     <div class="pill">xargs</div>
                     <div class="pill">printf</div>
                     <div class="pill">echo</div>
+                    <div class="pill">expand</div>
+                    <div class="pill">unexpand</div>
+                    <div class="pill">split</div>
+                    <div class="pill">cmp</div>
+                    <div class="pill">comm</div>
+                </div>
+            </div>
+
+            <div class="pill-group animate" style="transition-delay:.09s">
+                <div class="pill-group-label">JSON &amp; data</div>
+                <div class="pills">
+                    <div class="pill" style="border-color:var(--accent1);color:var(--accent1)">jq</div>
+                </div>
+            </div>
+
+            <div class="pill-group animate" style="transition-delay:.12s">
+                <div class="pill-group-label">Network</div>
+                <div class="pills">
+                    <div class="pill" style="border-color:var(--mauve);color:var(--mauve)">http</div>
+                    <div class="pill" style="border-color:var(--mauve);color:var(--mauve)">dig</div>
                 </div>
             </div>
 
@@ -337,6 +363,7 @@
                     <div class="pill">env</div>
                     <div class="pill">sleep</div>
                     <div class="pill">seq</div>
+                    <div class="pill">getopt</div>
                     <div class="pill">true</div>
                     <div class="pill">false</div>
                     <div class="pill">yes</div>
@@ -370,7 +397,7 @@
                 <div class="arch-card animate" style="transition-delay:.4s">
                     <div class="arch-num">4</div>
                     <h3>Applets</h3>
-                    <p>51 modules in <code>mainsail/applets/</code>, ~30–700 lines each. Read binary via <code>sys.stdin.buffer</code>; write via <code>sys.stdout</code> / <code>sys.stdout.buffer</code>. Return 0 / 1 / 2 (success / runtime / usage).</p>
+                    <p>66 modules in <code>mainsail/applets/</code>, ~10–900 lines each. Read binary via <code>sys.stdin.buffer</code>; write via <code>sys.stdout</code> / <code>sys.stdout.buffer</code>. Return 0 / 1 / 2 (success / runtime / usage).</p>
                 </div>
             </div>
         </div>
@@ -390,7 +417,7 @@
 <span class="t-g">$</span> cd mainsail && pip install -e .
 
 <span class="t-g">$</span> mainsail --version
-<span class="t-b">mainsail 0.1.15</span>
+<span class="t-b">mainsail 0.2.0</span>
 
 <span class="t-m"># Or freeze a standalone binary</span>
 <span class="t-g">$</span> pip install "Nuitka[onefile]"
@@ -411,15 +438,16 @@
                 </div>
                 <div class="terminal animate" style="transition-delay:.25s">
                     <div class="terminal-bar"><span class="terminal-dot"></span><span class="terminal-dot"></span><span class="terminal-dot"></span><span class="terminal-label">usage.sh</span></div>
-                    <div class="terminal-body"><pre><span class="t-m"># Daily-driver pipelines</span>
+                    <div class="terminal-body"><pre><span class="t-m"># Daily pipelines (find + awk + jq, all in one binary)</span>
 <span class="t-g">$</span> mainsail find . -name '*.py' -mtime -7
 <span class="t-g">$</span> mainsail awk -F, '{s+=$3} END{print s/NR}' data.csv
 
-<span class="t-m"># Cross-platform integrity</span>
-<span class="t-g">$</span> mainsail sha256sum *.tar.gz
+<span class="t-m"># Real jq</span>
+<span class="t-g">$</span> mainsail jq '.servers[] | select(.region == "us") | .name' inv.json
 
-<span class="t-m"># Real sed + in-place edit</span>
-<span class="t-g">$</span> mainsail sed -i 's/foo/bar/g' *.txt
+<span class="t-m"># HTTP + DNS without curl/dig installed</span>
+<span class="t-g">$</span> mainsail http -H 'Authorization: Bearer $T' https://api/me
+<span class="t-g">$</span> mainsail dig MX gmail.com +short
 
 <span class="t-m"># Windows-native aliases</span>
 <span class="t-g">$</span> mainsail dir .                   :: == ls

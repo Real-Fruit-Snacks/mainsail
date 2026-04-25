@@ -10,11 +10,11 @@
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Windows%20%7C%20macOS-lightgrey)
 ![Arch](https://img.shields.io/badge/arch-x86__64%20%7C%20ARM64-blue)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Tests](https://img.shields.io/badge/tests-268%20passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-337%20passing-brightgreen.svg)
 
 **Single-file BusyBox-like multi-call binary, in Python.**
 
-51 POSIX utilities — `ls`, `cat`, `grep`, `sed`, `awk`, `tar`, and friends — bundled into a ~5 MB executable. Native Windows support without WSL, Cygwin, or git-bash. Six native binaries (glibc Linux × x86_64/ARM64, Windows × x86_64/ARM64, macOS ARM64, Alpine/musl Linux x64) plus an ~80 KB portable zipapp that runs anywhere Python 3.8+ is installed — including ESXi.
+**66 utilities** — the POSIX coreutils (`ls`, `cat`, `grep`, `sed`, `awk`, `tar`, …) plus a real `jq` for JSON, an HTTP client (`http`), a DNS resolver (`dig`), and the parity gap-fillers BusyBox users miss (`tac`, `rev`, `nl`, `paste`, `split`, `cmp`, `comm`, `expand`, `unexpand`, `mktemp`, `truncate`, `getopt`). Bundled into a ~5 MB executable. Native Windows support without WSL, Cygwin, or git-bash. Six native binaries (glibc Linux × x86_64/ARM64, Windows × x86_64/ARM64, macOS ARM64, Alpine/musl Linux x64) plus an ~90 KB portable zipapp that runs anywhere Python 3.8+ is installed — including ESXi.
 
 [Download Latest](https://github.com/Real-Fruit-Snacks/mainsail/releases/latest)
 &nbsp;·&nbsp;
@@ -105,9 +105,9 @@ Savings are real for the zipapp (minimal drops it from 80 KB to 45 KB) but modes
 
 ## Features
 
-### One binary, fifty-one utilities
+### One binary, sixty-six utilities
 
-Every common POSIX tool you'd reach for in a shell pipeline. Dispatch via `mainsail <applet>` or symlink/hardlink to call the applet directly.
+Every common POSIX tool you'd reach for in a shell pipeline — plus `jq` for JSON, `http` for HTTP, and `dig` for DNS. Dispatch via `mainsail <applet>` or symlink/hardlink to call the applet directly.
 
 ```bash
 mainsail ls -la                          # GNU-style flags
@@ -134,7 +134,10 @@ Each applet implements the common POSIX flags and edge cases.
 
 - `find` — expression tree with `-exec`, `-prune`, `-and`/`-or`, parens, size/time predicates, `-delete`
 - `sed` — `s///`, `d`, `p`, `q`, `=`, `y///`, addresses, ranges, negation, `-i` in-place edit, BRE + ERE
-- `awk` — BEGIN/END, `/regex/` and expression patterns, range patterns, `print`/`printf`, full control flow (if/else, while, do/while, for, for-in), associative arrays, the standard built-ins (`length`, `substr`, `index`, `split`, `sub`, `gsub`, `match`, `toupper`, `tolower`, `sprintf`, `int`)
+- `awk` — BEGIN/END, `/regex/` and expression patterns, range patterns, `print`/`printf`, full control flow, associative arrays, the standard built-ins (`length`, `substr`, `index`, `split`, `sub`, `gsub`, `match`, `toupper`, `tolower`, `sprintf`, `int`)
+- `jq` — practical subset: pipes, comma, alternatives, comparison/arithmetic, object & array constructors, slices and iterators, `if`/`then`/`elif`/`else`/`end`, **40+ built-in functions** (`select`, `map`, `sort_by`, `unique_by`, `to_entries`, `with_entries`, `paths`, `split`, `join`, `startswith`, …), raw output (`-r`), compact (`-c`), slurp (`-s`)
+- `http` — `GET`/`POST`/`PUT`/`DELETE`/`HEAD`, custom headers, body literal or `@file`, `--json` shortcut, redirect-following on by default, `--fail` for HTTP errors
+- `dig` — direct UDP DNS queries: A, AAAA, MX, TXT, CNAME, NS, SOA, PTR; `+short`; reverse lookups via `-x`
 - `sort` — `-k` key fields, `-t` custom separator, `-o` output file, numeric/reverse/unique
 - `tar` — create/extract/list with gzip/bzip2/xz filters; accepts traditional (`cvfz`) and dashed (`-cvfz`) flag forms
 
@@ -142,6 +145,9 @@ Each applet implements the common POSIX flags and edge cases.
 mainsail find . -name '*.tmp' -delete
 mainsail sed -i 's/foo/bar/g' *.txt
 mainsail awk -F, '{s+=$3} END{print s/NR}' data.csv
+mainsail jq '.servers[] | select(.region == "us") | .name' inventory.json
+mainsail http -H 'Authorization: Bearer $TOKEN' https://api.example.com/me
+mainsail dig MX gmail.com +short
 mainsail sort -k 3,3n -t , data.csv
 mainsail tar -czf src.tar.gz src/ --exclude='*.pyc'
 ```
@@ -166,13 +172,15 @@ Same SHA-256 of `"abc"` (`ba7816bf…015ad`) on every supported platform. `tar` 
 
 | Category    | Applets |
 |-------------|---------|
-| File ops    | `ls` `cp` `mv` `rm` `mkdir` `touch` `find` `chmod` `ln` `stat` |
-| Text        | `cat` `grep` `head` `tail` `wc` `sort` `uniq` `cut` `tr` `sed` `awk` `tee` `xargs` `printf` `echo` |
+| File ops    | `ls` `cp` `mv` `rm` `mkdir` `touch` `find` `chmod` `ln` `stat` `truncate` `mktemp` |
+| Text        | `cat` `tac` `rev` `grep` `head` `tail` `wc` `nl` `sort` `uniq` `cut` `paste` `tr` `sed` `awk` `tee` `xargs` `printf` `echo` `expand` `unexpand` `split` `cmp` `comm` |
+| **JSON**    | **`jq`** _(practical subset: pipes, filters, select/map/sort_by, object & array constructors, 40+ built-in functions)_ |
+| **Network** | **`http`** _(curl-style GET/POST with headers, body, JSON, redirects)_ • **`dig`** _(DNS A/AAAA/MX/TXT/CNAME/NS/SOA/PTR via direct UDP queries)_ |
 | Hashing     | `md5sum` `sha1sum` `sha256sum` `sha512sum` |
 | Archives    | `tar` `gzip` `gunzip` `zip` `unzip` |
 | Filesystem  | `du` `df` |
 | Paths       | `basename` `dirname` `realpath` `pwd` `which` |
-| System      | `uname` `hostname` `whoami` `date` `env` `sleep` |
+| System      | `uname` `hostname` `whoami` `date` `env` `sleep` `getopt` |
 | Control     | `true` `false` `yes` `seq` |
 
 Run `mainsail --list` for the full set with one-line descriptions, or `mainsail <applet> --help` for per-applet usage and flags.
