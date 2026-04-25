@@ -7,6 +7,15 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.13] - 2026-04-25
+
+### Fixed
+- v0.1.12's static build aborted FATAL on Alpine because Nuitka shells
+  out to the `file` utility internally (despite the message wording it
+  as a macOS-arch-detection step) and Alpine doesn't ship it by
+  default. Added `file` to the apk install list. CFLAGS/LDFLAGS
+  `-static` already in place from v0.1.12.
+
 ## [0.1.12] - 2026-04-25
 
 ### Fixed
@@ -195,7 +204,8 @@ Initial release.
 - GitHub Actions CI matrix: Linux / macOS / Windows × Python 3.10–3.13
 - Release workflow that builds and publishes binaries on tag push
 
-[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.12...HEAD
+[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.1.13...HEAD
+[0.1.13]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.13
 [0.1.12]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.12
 [0.1.11]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.11
 [0.1.10]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.10

@@ -187,12 +187,14 @@ jobs:
     steps:
       - name: Install build deps (Alpine)
         run: |
+          # `file` is needed by Nuitka itself (it shells out to detect
+          # binary file types). Without it the build aborts FATAL.
           apk add --no-cache \
             python3 python3-dev py3-pip \
             gcc g++ musl-dev \
             libffi-dev openssl-dev zlib-dev xz-dev bzip2-dev \
             patchelf ccache make git \
-            bash
+            bash file
       - uses: actions/checkout@v4
       - name: Install Nuitka
         run: pip3 install --break-system-packages "Nuitka[onefile]"
