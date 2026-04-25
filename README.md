@@ -14,7 +14,17 @@
 
 **Single-file BusyBox-like multi-call binary, in Python.**
 
-**73 utilities** — the POSIX coreutils (`ls`, `cat`, `grep`, `sed`, `awk`, `tar`, …) plus a real `jq` for JSON, an HTTP client (`http`), a DNS resolver (`dig`), a TCP `nc`, and the parity gap-fillers BusyBox users miss (`tac`, `rev`, `nl`, `paste`, `split`, `cmp`, `comm`, `expand`, `unexpand`, `mktemp`, `truncate`, `getopt`, `dd`, `od`, `hexdump`, `diff`, `join`, `fmt`). Bundled into a single ~5–7 MB native binary (size depends on platform). Native Windows support without WSL, Cygwin, or git-bash. Six native binaries (glibc Linux × x86_64/ARM64, Windows × x86_64/ARM64, macOS ARM64, Alpine/musl Linux x64) plus a ~125 KB portable zipapp that runs anywhere Python 3.8+ is installed — including ESXi.
+**73 utilities. One ~5–7 MB binary. Native Windows — no WSL, Cygwin, or git-bash.**
+
+The POSIX coreutils (`ls`, `cat`, `grep`, `sed`, `awk`, `tar`, …) plus:
+
+- a real **`jq`** for JSON
+- an HTTP client (**`http`**)
+- a DNS resolver (**`dig`**)
+- a TCP netcat (**`nc`**)
+- the BusyBox parity gap-fillers GNU users miss: `dd`, `od`, `hexdump`, `diff`, `join`, `fmt`, `paste`, `split`, `cmp`, `comm`, `tac`, `rev`, `nl`, `mktemp`, `truncate`, `getopt`, `expand`, `unexpand`
+
+Ships **six native binaries** (Linux × x86_64/ARM64, Windows × x86_64/ARM64, macOS ARM64, Alpine/musl Linux x64) plus a **~125 KB portable zipapp** that runs anywhere Python 3.8+ is installed — including ESXi.
 
 [Download Latest](https://github.com/Real-Fruit-Snacks/mainsail/releases/latest)
 &nbsp;·&nbsp;
