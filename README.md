@@ -14,7 +14,7 @@
 
 **Single-file BusyBox-like multi-call binary, in Python.**
 
-**73 utilities** — the POSIX coreutils (`ls`, `cat`, `grep`, `sed`, `awk`, `tar`, …) plus a real `jq` for JSON, an HTTP client (`http`), a DNS resolver (`dig`), a TCP `nc`, and the parity gap-fillers BusyBox users miss (`tac`, `rev`, `nl`, `paste`, `split`, `cmp`, `comm`, `expand`, `unexpand`, `mktemp`, `truncate`, `getopt`, `dd`, `od`, `hexdump`, `diff`, `join`, `fmt`). Bundled into a ~5 MB executable. Native Windows support without WSL, Cygwin, or git-bash. Six native binaries (glibc Linux × x86_64/ARM64, Windows × x86_64/ARM64, macOS ARM64, Alpine/musl Linux x64) plus an ~90 KB portable zipapp that runs anywhere Python 3.8+ is installed — including ESXi.
+**73 utilities** — the POSIX coreutils (`ls`, `cat`, `grep`, `sed`, `awk`, `tar`, …) plus a real `jq` for JSON, an HTTP client (`http`), a DNS resolver (`dig`), a TCP `nc`, and the parity gap-fillers BusyBox users miss (`tac`, `rev`, `nl`, `paste`, `split`, `cmp`, `comm`, `expand`, `unexpand`, `mktemp`, `truncate`, `getopt`, `dd`, `od`, `hexdump`, `diff`, `join`, `fmt`). Bundled into a single ~5–7 MB native binary (size depends on platform). Native Windows support without WSL, Cygwin, or git-bash. Six native binaries (glibc Linux × x86_64/ARM64, Windows × x86_64/ARM64, macOS ARM64, Alpine/musl Linux x64) plus a ~125 KB portable zipapp that runs anywhere Python 3.8+ is installed — including ESXi.
 
 [Download Latest](https://github.com/Real-Fruit-Snacks/mainsail/releases/latest)
 &nbsp;·&nbsp;
@@ -50,11 +50,11 @@ mainsail --list
 
 ## Pre-built artifacts
 
-Every release tag (`v0.1.x`) ships **13 artifacts** built and verified by GitHub Actions:
+Every release tag (`v0.x.x`) ships **13 artifacts** built and verified by GitHub Actions:
 
 ### Native binaries
 
-| Target                            | Full                                | Slim _(no archives/hashing)_              |
+| Target                            | Full _(73 applets)_                 | Slim _(39 applets — POSIX coreutils only)_ |
 |-----------------------------------|-------------------------------------|-------------------------------------------|
 | Linux x86_64 (glibc 2.35+)        | `mainsail-linux-x64`                | `mainsail-linux-x64-slim`                 |
 | Linux ARM64 (glibc 2.39+)         | `mainsail-linux-arm64`              | `mainsail-linux-arm64-slim`               |
@@ -69,10 +69,10 @@ Drop any binary anywhere on `PATH` and run.
 
 ### Portable zipapp
 
-| Artifact            | Size    | Applets | Notes                                         |
-|---------------------|---------|---------|-----------------------------------------------|
-| `mainsail.pyz`      | ~80 KB  | 51      | runs on any host with Python 3.8+             |
-| `mainsail-slim.pyz` | ~68 KB  | 39      | smaller; same applets as the slim binaries    |
+| Artifact            | Size     | Applets | Notes                                         |
+|---------------------|----------|---------|-----------------------------------------------|
+| `mainsail.pyz`      | ~125 KB  | 73      | runs on any host with Python 3.8+             |
+| `mainsail-slim.pyz` | ~70 KB   | 39      | POSIX coreutils only — drops `jq`, `http`, `dig`, `nc`, archives, hashing, parity extras |
 
 Useful for ESXi (which bundles Python 3 since 7.0U3), exotic architectures, jailbroken routers, and corporate machines where installing a native binary isn't practical:
 
@@ -89,11 +89,11 @@ Pick exactly the applets you need:
 python build.py --preset slim                      # 39 applets, no archives/hashing
 python build.py --preset minimal                   # 18 applets, scripting essentials
 python build.py --applets ls,cat,grep,sed,awk      # hand-picked
-python build.py --pyz --applets ls,cat,grep,sed    # smallest zipapp (~18 KB for 5 applets)
+python build.py --pyz --applets ls,cat,grep,sed    # smallest zipapp (~24 KB for 4 applets; ~36 KB once awk is included)
 python build.py --list-presets                     # see what's in each preset
 ```
 
-Savings are real for the zipapp (minimal drops it from 80 KB to 45 KB) but modest for the Nuitka binary (~3 %) — the Python runtime dominates the payload, not our code. Non-full builds land as `dist/mainsail-<suffix>` (with matching `.exe`/`.pyz` extension).
+Savings are real for the zipapp (full ≈ 127 KB, slim ≈ 72 KB, minimal ≈ 49 KB) and meaningful for the Nuitka binary now that v0.2.x ships 73 applets (slim drops 34 of them, ~10–14 % off the binary). Non-full builds land as `dist/mainsail-<suffix>` (with matching `.exe`/`.pyz` extension).
 
 > **Why no fully-static Linux binary?** We tried. `LDFLAGS=-static` and `--static-libpython=yes` both link cleanly, but Python then refuses to load any C extension at runtime with `ImportError: Dynamic loading not supported` — a fully-static Python interpreter can't `dlopen()`. A truly self-contained Python binary requires baking every extension into `libpython` at compile time, which `python-build-standalone` doesn't ship. So we offer the musl-linked variant for Alpine/distroless users and the dynamic glibc binary for everyone else.
 >
@@ -164,7 +164,7 @@ mainsail gzip -c data.bin | mainsail gunzip > data.bin.copy
 
 ### Cross-platform integrity
 
-Same SHA-256 of `"abc"` (`ba7816bf…015ad`) on every supported platform. `tar` archives are interchangeable. The CI suite runs 268 unit tests on Linux/macOS/Windows and a 23-case stress harness covering large inputs, Unicode, binary-safe streams, deep trees, pipelines, round-trips, and edge cases.
+Same SHA-256 of `"abc"` (`ba7816bf…015ad`) on every supported platform. `tar` archives are interchangeable. The CI suite runs 361 unit tests on Linux/macOS/Windows and a 23-case stress harness covering large inputs, Unicode, binary-safe streams, deep trees, pipelines, round-trips, and edge cases.
 
 ---
 
@@ -199,7 +199,7 @@ mainsail/
 └── applets/         # one module per applet, all implement
     ├── ls.py        #   NAME, ALIASES, HELP, main(argv) -> int
     ├── cat.py
-    └── ...          # 51 modules total
+    └── ...          # 73 modules total
 ```
 
 **Four-layer flow:**
@@ -217,7 +217,7 @@ Adding a new applet means dropping a module into `mainsail/applets/` with the fo
 
 ```bash
 pip install -e ".[dev]"            # install with test deps
-python -m pytest -q                # 268 unit tests
+python -m pytest -q                # 361 unit tests
 python scripts/stress.py           # 23-case stress harness
 python scripts/stress.py dist/mainsail.exe --quick   # against a frozen binary
 ```
@@ -233,7 +233,7 @@ python build.py --pyz --applets ls,cat,grep,awk    # custom zipapp
 python build.py --list-presets                     # show preset contents
 ```
 
-Output is a single self-contained executable: ~4.7 MB on Windows, ~5.5 MB on Linux glibc, ~6.3 MB on Linux musl. Compressed with zstandard. No Python needed at runtime.
+Output is a single self-contained executable. Approximate sizes for v0.2.1 (full preset): Windows x64 ≈ 5.3 MB, Windows ARM64 ≈ 6.2 MB, Linux x64 (glibc) ≈ 6.2 MB, Linux ARM64 (glibc) ≈ 7.1 MB, macOS ARM64 ≈ 5.7 MB, Linux x64 (Alpine/musl) ≈ 7.2 MB. Compressed with zstandard. No Python needed at runtime.
 
 CI builds **ten native glibc binaries** (five full + five slim), **two zipapps** (full + slim), and **one musl-linked Linux x64 binary** on every release tag.
 

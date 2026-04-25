@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>mainsail — Unix utilities, in one binary</title>
-    <meta name="description" content="73 utilities — POSIX coreutils plus jq for JSON, an HTTP client, a DNS resolver, a TCP netcat, and BusyBox parity (dd, od, hexdump, diff, join, fmt) — bundled into a single ~5 MB binary. Native Windows support, no WSL required.">
+    <meta name="description" content="73 utilities — POSIX coreutils plus jq for JSON, an HTTP client, a DNS resolver, a TCP netcat, and BusyBox parity (dd, od, hexdump, diff, join, fmt) — bundled into a single ~5–7 MB binary. Native Windows support, no WSL required.">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='16' y='24' text-anchor='middle' font-family='Inter,sans-serif' font-size='24' font-weight='800' fill='%2374c7ec'%3EM%3C/text%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -152,7 +152,7 @@
         <div class="container">
             <div class="hero-logo animate"><img src="assets/logo-dark.svg" alt="mainsail"></div>
             <h1 class="hero-tagline animate" style="transition-delay:.1s">Unix utilities, in one binary, anywhere.</h1>
-            <p class="hero-desc animate" style="transition-delay:.2s">73 utilities — POSIX coreutils plus a real <code style="background:rgba(116,199,236,0.15);padding:1px 6px;border-radius:3px;color:var(--accent1)">jq</code> for JSON, an HTTP client, a DNS resolver, a TCP <code>nc</code>, and BusyBox parity (<code>dd</code>, <code>od</code>, <code>hexdump</code>, <code>diff</code>, …) — bundled into a single ~5 MB executable. Native Windows support without WSL, Cygwin, or git-bash. Six native binaries plus a portable zipapp for ESXi.</p>
+            <p class="hero-desc animate" style="transition-delay:.2s">73 utilities — POSIX coreutils plus a real <code style="background:rgba(116,199,236,0.15);padding:1px 6px;border-radius:3px;color:var(--accent1)">jq</code> for JSON, an HTTP client, a DNS resolver, a TCP <code>nc</code>, and BusyBox parity (<code>dd</code>, <code>od</code>, <code>hexdump</code>, <code>diff</code>, …) — bundled into a single 5–7 MB executable. Native Windows support without WSL, Cygwin, or git-bash. Six native binaries plus a portable zipapp for ESXi.</p>
             <div class="hero-ctas animate" style="transition-delay:.3s">
                 <a href="https://github.com/Real-Fruit-Snacks/mainsail/releases/latest" class="btn-primary">Download Latest</a>
                 <a href="https://github.com/Real-Fruit-Snacks/mainsail" class="btn-secondary">View Source</a>
@@ -209,7 +209,7 @@
                     <div class="mini-terminal"><span class="t-g">$</span> mainsail --list | wc -l<br><span class="t-b">73</span><br><span class="t-g">$</span> ln mainsail ls && ./ls -la</div>
                 </div>
                 <div class="bento-card bento-stat animate" style="transition-delay:.18s">
-                    <div class="big">~5<span style="font-size:24px">MB</span></div>
+                    <div class="big">5–7<span style="font-size:24px">MB</span></div>
                     <div class="label">Native Binary</div>
                 </div>
                 <div class="bento-card animate" style="transition-delay:.2s">
@@ -239,7 +239,7 @@
                 </div>
                 <div class="bento-card animate" style="transition-delay:.34s">
                     <h3 style="color:var(--accent1)">Portable Zipapp</h3>
-                    <p>A 80 KB <code>mainsail.pyz</code> runs anywhere Python 3.8+ is installed — ESXi hosts, exotic architectures, jailbroken routers, restrictive corporate machines. SCP, run, done.</p>
+                    <p>A 125 KB <code>mainsail.pyz</code> runs anywhere Python 3.8+ is installed — ESXi hosts, exotic architectures, jailbroken routers, restrictive corporate machines. SCP, run, done.</p>
                 </div>
                 <div class="bento-card bento-stat animate" style="transition-delay:.42s">
                     <div class="big" style="color:var(--mauve)">6</div>
@@ -404,7 +404,7 @@
                 <div class="arch-card animate" style="transition-delay:.4s">
                     <div class="arch-num">4</div>
                     <h3>Applets</h3>
-                    <p>73 modules in <code>mainsail/applets/</code>, ~10–900 lines each. Read binary via <code>sys.stdin.buffer</code>; write via <code>sys.stdout</code> / <code>sys.stdout.buffer</code>. Return 0 / 1 / 2 (success / runtime / usage).</p>
+                    <p>73 modules in <code>mainsail/applets/</code>, ranging from ~10 lines (<code>true</code>) to ~1800 (<code>awk</code>). Read binary via <code>sys.stdin.buffer</code>; write via <code>sys.stdout</code> / <code>sys.stdout.buffer</code>. Return 0 / 1 / 2 (success / runtime / usage).</p>
                 </div>
             </div>
         </div>
@@ -429,19 +429,19 @@
 <span class="t-m"># Or freeze a standalone binary</span>
 <span class="t-g">$</span> pip install "Nuitka[onefile]"
 <span class="t-g">$</span> python build.py
-<span class="t-b">→ dist/mainsail (~5 MB, no Python at runtime)</span>
+<span class="t-b">→ dist/mainsail (~6 MB, no Python at runtime)</span>
 
 <span class="t-m"># Or a portable zipapp — runs on any Python 3.8+
 # (ESXi, exotic arches, restricted hosts)</span>
 <span class="t-g">$</span> python build.py --pyz
-<span class="t-b">→ dist/mainsail.pyz (~80 KB)</span>
+<span class="t-b">→ dist/mainsail.pyz (~125 KB)</span>
 
 <span class="t-m"># Or a custom subset — slim drops archives + hashing,
 # minimal is bare essentials, --applets picks any set</span>
 <span class="t-g">$</span> python build.py --preset slim
 <span class="t-b">→ dist/mainsail-slim (39 applets)</span>
 <span class="t-g">$</span> python build.py --pyz --applets ls,cat,grep,sed,awk
-<span class="t-b">→ dist/mainsail-custom.pyz (~18 KB)</span></pre></div>
+<span class="t-b">→ dist/mainsail-custom.pyz (~36 KB; ~21 KB without awk)</span></pre></div>
                 </div>
                 <div class="terminal animate" style="transition-delay:.25s">
                     <div class="terminal-bar"><span class="terminal-dot"></span><span class="terminal-dot"></span><span class="terminal-dot"></span><span class="terminal-label">usage.sh</span></div>

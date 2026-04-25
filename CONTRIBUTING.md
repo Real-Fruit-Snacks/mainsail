@@ -16,7 +16,7 @@ pip install -e ".[dev]"          # editable install with test deps
 **Verify:**
 
 ```bash
-python -m pytest -q              # 268 unit tests
+python -m pytest -q              # 361 unit tests
 python -m mainsail --list        # should print all 73 applets
 ```
 
@@ -46,7 +46,7 @@ The portable `mainsail.pyz` is a stdlib-only build (no Nuitka), useful
 for quick packaging checks:
 
 ```bash
-python build.py --pyz            # -> dist/mainsail.pyz (~80 KB)
+python build.py --pyz            # -> dist/mainsail.pyz (~125 KB)
 python3 dist/mainsail.pyz --version
 ```
 
@@ -61,8 +61,8 @@ python build.py --applets ls,cat,grep,awk  # hand-picked set
 python build.py --list-presets             # show preset contents
 ```
 
-Savings are real for the zipapp (minimal is ~44 % smaller) but modest
-for the Nuitka binary (~3 %) — the Python runtime dominates. Non-full
+Savings are real for the zipapp (minimal is ~60 % smaller) but modest
+for the Nuitka binary (~10–14 %) — the Python runtime dominates. Non-full
 builds land as `dist/mainsail-<suffix>` (binary, `.exe`, or `.pyz`).
 
 The zipapp uses the same code path as `python -m mainsail`, so it's not
@@ -137,7 +137,7 @@ grep: add -A/-B/-C context, -o, -w, -q
 
 ## Pull request checklist
 
-- [ ] `python -m pytest -q` passes (268/268)
+- [ ] `python -m pytest -q` passes (361/361)
 - [ ] New/changed behavior has tests
 - [ ] `mainsail <applet> --help` text updated in `mainsail/usage.py`
       when flags change

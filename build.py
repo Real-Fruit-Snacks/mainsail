@@ -216,10 +216,19 @@ def build_binary(keep_modules: set[str] | None, suffix: str, *, static: bool = F
 
 
 def _print_presets() -> int:
+    # Discover the real applet count from the registry so the printout
+    # stays accurate as we add applets.
+    sys.path.insert(0, str(ROOT))
+    try:
+        from mainsail.registry import _REGISTRY, load_all_applets  # type: ignore
+        load_all_applets()
+        canonical = {a.name for a in _REGISTRY.values()}
+    finally:
+        sys.path.pop(0)
     print("Available presets:")
     for name, applets in PRESETS.items():
         if applets is None:
-            print(f"  {name}  (all 51 applets)")
+            print(f"  {name}  (all {len(canonical)} applets)")
         else:
             print(f"  {name}  ({len(applets)} applets): {', '.join(sorted(applets))}")
     return 0
