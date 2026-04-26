@@ -109,11 +109,16 @@ python build.py --list-presets                     # see what's in each preset
 
 Savings are real for the zipapp (full ≈ 148 KB, slim ≈ 75 KB, minimal ≈ 52 KB) and meaningful for the Nuitka binary now that v0.3.x ships 84 applets (slim drops 45 of them — about 10–15 % off the binary). Non-full builds land as `dist/mainsail-<suffix>` (with matching `.exe`/`.pyz` extension).
 
-> **Why no fully-static Linux binary?** We tried. `LDFLAGS=-static` and `--static-libpython=yes` both link cleanly, but Python then refuses to load any C extension at runtime with `ImportError: Dynamic loading not supported` — a fully-static Python interpreter can't `dlopen()`. A truly self-contained Python binary requires baking every extension into `libpython` at compile time, which `python-build-standalone` doesn't ship. So we offer the musl-linked variant for Alpine/distroless users and the dynamic glibc binary for everyone else.
->
-> **Why no `linux-arm64-musl`?** GitHub Actions doesn't support Node.js actions inside Alpine containers on ARM64 runners — only x64. Until that changes, ARM64 users have the dynamic glibc binary, the portable `mainsail.pyz`, or can build a musl variant locally on Alpine.
->
-> **Why no `mainsail-macos-x64`?** GitHub's free-tier `macos-13` runner queue is effectively unavailable to this project (30+ minute queues, never dispatched). Apple stopped shipping Intel Macs in 2023; the ARM64 binary covers the supported lineup. Intel-Mac users can use the portable `mainsail.pyz` or build from source.
+<details>
+<summary><strong>Why no fully-static Linux binary, no <code>linux-arm64-musl</code>, no <code>mainsail-macos-x64</code>?</strong></summary>
+
+**No fully-static Linux binary.** We tried. `LDFLAGS=-static` and `--static-libpython=yes` both link cleanly, but Python then refuses to load any C extension at runtime with `ImportError: Dynamic loading not supported` — a fully-static Python interpreter can't `dlopen()`. A truly self-contained Python binary requires baking every extension into `libpython` at compile time, which `python-build-standalone` doesn't ship. So we offer the musl-linked variant for Alpine/distroless users and the dynamic glibc binary for everyone else.
+
+**No `linux-arm64-musl`.** GitHub Actions doesn't support Node.js actions inside Alpine containers on ARM64 runners — only x64. Until that changes upstream, ARM64 users have the dynamic glibc binary, the portable `mainsail.pyz`, or can build a musl variant locally on Alpine.
+
+**No `mainsail-macos-x64`.** GitHub's free-tier `macos-13` runner queue is effectively unavailable to this project (30+ minute queues, never dispatched). Apple stopped shipping Intel Macs in 2023; the ARM64 binary covers the supported lineup. Intel-Mac users can use the portable `mainsail.pyz` or build from source.
+
+</details>
 
 ---
 
