@@ -46,7 +46,7 @@ The portable `mainsail.pyz` is a stdlib-only build (no Nuitka), useful
 for quick packaging checks:
 
 ```bash
-python build.py --pyz            # -> dist/mainsail.pyz (~125 KB)
+python build.py --pyz            # -> dist/mainsail.pyz (~148 KB)
 python3 dist/mainsail.pyz --version
 ```
 
