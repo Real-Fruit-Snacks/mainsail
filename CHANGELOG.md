@@ -7,6 +7,50 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-04-26
+
+The "drop-in coreutils replacement" release. **Nine** new applets that
+either reduce friction (`install-aliases`) or fill in commonly-wanted
+gaps users were hitting daily.
+
+Applets: 75 → **84** &nbsp;·&nbsp; Tests: 373 → **402** (29 new)
+
+### Added
+- **`install-aliases [DIR]`** — bulk-create per-applet symlinks (or
+  hardlinks; or copies as a fallback) so the user can type `ls`, `cat`,
+  `grep` directly. DIR defaults to `~/.local/bin` (POSIX) or
+  `%LOCALAPPDATA%/mainsail/bin` (Windows). `--aliases` to also link
+  ALIAS names (`dir`, `type`, `copy`, `del`, …); `--all` to include
+  the lifecycle applets; `--dry-run` and `--force` modifiers.
+- **`watch [-n SECS]`** — periodically run a command and re-render the
+  output. `-t` no-title, `-x` no-shell, `-g`/`-b`/`-p` change-detect /
+  beep / precise-interval flags.
+- **`timeout DURATION CMD ...`** — POSIX-spec timeout wrapper. Exit
+  124 on timeout, 125 on argument errors, 127 on missing command.
+  `-s SIG`, `-k SECS`, `--preserve-status`.
+- **`base64 [-d]`** — encode/decode with `-w` line-wrap and
+  `-i` ignore-garbage on decode.
+- **`uuidgen`** — generate UUIDs. Random (default), time-based,
+  md5-namespace, sha1-namespace. `--upper`, `--hex`, `-c COUNT`,
+  `@dns`/`@url`/`@oid`/`@x500` namespace presets.
+- **`column [-t]`** — format input as columns or aligned table.
+  `-s` input separator, `-o` output separator, `-x` row-fill.
+- **`fold [-w COLS] [-s]`** — wrap each line at COLS chars; `-s` to
+  break at spaces.
+- **`id`** — print uid, gid, group memberships. `-u`/`-g`/`-G`/`-n`/`-r`.
+  Windows fallback returns the username with placeholder numerics.
+- **`groups [USER]`** — print the groups USER (or current user) is in.
+  POSIX-only; Windows prints a clear message.
+
+### Documentation
+- README quick-start now includes `pipx install git+...github...` —
+  works today without PyPI.
+- README quick-start now demonstrates `install-aliases` alongside the
+  existing `completions` and `update` lines.
+- docs/index.html: new "Process" pill group (pink accent), revised
+  hero card mentions install-aliases as the one-shot-to-`ls`
+  experience, install-aliases moved into the Lifecycle group.
+
 ## [0.3.0] - 2026-04-25
 
 The "lifecycle" release. Two new applets that focus on the experience
@@ -388,7 +432,8 @@ Initial release.
 - GitHub Actions CI matrix: Linux / macOS / Windows × Python 3.10–3.13
 - Release workflow that builds and publishes binaries on tag push
 
-[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.3.1
 [0.3.0]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.3.0
 [0.2.1]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.2.1
 [0.2.0]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.2.0

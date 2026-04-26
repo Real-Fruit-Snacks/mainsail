@@ -14,7 +14,7 @@
 
 ## Checklist
 
-- [ ] `python -m pytest -q` passes (373/373)
+- [ ] `python -m pytest -q` passes (402/402)
 - [ ] New or changed behavior has test coverage
 - [ ] `mainsail <applet> --help` text updated in `mainsail/usage.py` (if flags changed)
 - [ ] `README.md` applet table updated (if adding an applet)

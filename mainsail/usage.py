@@ -1053,4 +1053,133 @@ Won't run when invoked as `python -m mainsail` — there's no single
 artifact to swap. Use `pip install -U mainsail` (when on PyPI) or
 download a binary from the Releases page.
 """,
+    # ---- v0.3.1 additions: install-aliases + 8 quick-wins -----------------
+    "install-aliases": """\
+Usage: mainsail install-aliases [DIR]
+
+Bulk-create per-applet symlinks (or hardlinks; or copies as a last
+fallback) so the user can type `ls`, `cat`, `grep` directly and
+mainsail's multi-call dispatch handles the request. DIR defaults to
+~/.local/bin (POSIX) or %LOCALAPPDATA%/mainsail/bin (Windows).
+
+Options:
+  --aliases       also link ALIAS names (dir, type, copy, del, ...)
+  --all           include lifecycle applets (completions, update,
+                  install-aliases) — by default these are skipped
+  -n, --dry-run   print what would be created without making any links
+  -f, --force     overwrite existing files in DIR
+  -q, --quiet     suppress per-link progress output
+
+Won't run as `python -m mainsail` — there's no single binary to link.
+""",
+    "watch": """\
+Usage: watch [-n SECS] [-t] CMD [ARG...]
+
+Run CMD periodically and re-render the output. Defaults to a 2-second
+cycle; Ctrl-C exits cleanly.
+
+Options:
+  -n, --interval SECS    seconds between runs (min 0.1, default 2)
+  -t, --no-title         suppress the timestamp / command header
+  -x, --exec             pass CMD as argv directly (no shell)
+  -g, --chgexit          exit when output changes
+  -b, --beep             ring the terminal bell on output change
+  -p, --precise          compensate for command runtime drift
+""",
+    "timeout": """\
+Usage: timeout [OPTION]... DURATION CMD [ARG]...
+
+Run CMD with a time limit. DURATION accepts s/m/h/d suffixes.
+
+Exit codes:
+  124   command timed out
+  125   timeout itself failed (bad arg, signal lookup, etc.)
+  127   command not found
+  *     anything else: the command's own exit code
+
+Options:
+  -s, --signal NAME       signal sent on timeout (default TERM)
+  -k, --kill-after SECS   if CMD ignores the first signal, send SIGKILL
+                          after this many extra seconds
+  --preserve-status       return the command's exit status, not 124
+  -v, --verbose           print signal-sending diagnostics to stderr
+""",
+    "base64": """\
+Usage: base64 [-d] [-w COLS] [-i] [FILE]
+
+Base64-encode (default) or decode (-d) FILE or stdin.
+
+Options:
+  -d, --decode             decode standard base64
+  -w, --wrap COLS          wrap encoded output at COLS chars (default
+                           76; 0 disables wrapping)
+  -i, --ignore-garbage     when decoding, drop characters outside
+                           the base64 alphabet instead of erroring
+""",
+    "uuidgen": """\
+Usage: uuidgen [-r | -t | -m | -s] [OPTION]...
+
+Generate a UUID. Defaults to a random (v4) UUID.
+
+Options:
+  -r, --random              random v4 (default)
+  -t, --time                time-based v1 (uses MAC where available)
+  -m, --md5                 v3 (md5 hash); requires -n and -N
+  -s, --sha1                v5 (sha1 hash); requires -n and -N
+  -n, --namespace NS        namespace UUID (or @dns / @url / @oid /
+                            @x500 preset) — for -m/-s
+  -N, --name NAME           name string — for -m/-s
+  --upper                   emit upper-case
+  --hex                     emit without dashes (32 chars)
+  -c, --count N             emit N UUIDs, one per line
+""",
+    "column": """\
+Usage: column [-t] [-s SEP] [-o OUT] [FILE...]
+
+Format input as columns. Default mode arranges entries column-first
+to fit the terminal width; -t treats each line as a row of fields and
+prints a properly-aligned table.
+
+Options:
+  -t, --table                table mode (auto-detect column widths)
+  -s, --separator CHARS      input field separator(s)
+  -o, --output-separator STR text between output columns (default 2 sp.)
+  -x, --fillrows             arrange row-first instead of column-first
+""",
+    "fold": """\
+Usage: fold [-w COLS] [-s] [FILE...]
+
+Wrap each input line so it fits within COLS columns.
+
+Options:
+  -w, --width COLS    target width (default 80)
+  -NUM                shorthand for --width=NUM
+  -s, --spaces        break at spaces when possible (preserves words)
+  -b, --bytes         accepted for compatibility (we wrap by character)
+""",
+    "id": """\
+Usage: id [OPTION]... [USER]
+
+Print uid, gid, and group memberships for the current process or for
+USER.
+
+Options:
+  -u, --user        only print the user (uid or name with -n)
+  -g, --group       only print the primary group (gid or name with -n)
+  -G, --groups      only print all group ids/names
+  -n, --name        emit names instead of numeric ids (with -u/-g/-G)
+  -r, --real        accepted; we already use real ids on POSIX
+
+On Windows the uid/gid model doesn't apply, so the output uses
+placeholder numerics with the resolvable username.
+""",
+    "groups": """\
+Usage: groups [USER...]
+
+Print the names of the groups USER (or the current user if none) is
+a member of.
+
+POSIX-only; on Windows the output is a single line saying group
+information isn't available.
+""",
 }

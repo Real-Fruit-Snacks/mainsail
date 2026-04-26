@@ -10,9 +10,9 @@
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Windows%20%7C%20macOS-lightgrey)
 ![Arch](https://img.shields.io/badge/arch-x86__64%20%7C%20ARM64-blue)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Tests](https://img.shields.io/badge/tests-373%20passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-402%20passing-brightgreen.svg)
 
-A BusyBox-style multi-call binary in Python — **75 Unix utilities**, one ~5–7 MB executable, native on Linux, Windows, and macOS.
+A BusyBox-style multi-call binary in Python — **84 Unix utilities**, one ~5–7 MB executable, native on Linux, Windows, and macOS.
 
 [Download Latest](https://github.com/Real-Fruit-Snacks/mainsail/releases/latest)
 &nbsp;·&nbsp;
@@ -44,9 +44,17 @@ pip install -e .
 mainsail --list
 ```
 
+**Or via `pipx` straight from GitHub** — no PyPI required, isolated venv, `mainsail` on PATH:
+
+```bash
+pipx install git+https://github.com/Real-Fruit-Snacks/mainsail.git
+mainsail --version
+```
+
 **Wire up your shell + stay current:**
 
 ```bash
+mainsail install-aliases ~/.local/bin                                  # symlink ls, cat, grep, ... to mainsail
 mainsail completions bash | sudo tee /etc/bash_completion.d/mainsail   # tab-complete applets
 mainsail update                                                        # self-update from latest GitHub release
 mainsail update --check                                                # see what would change without downloading
@@ -111,7 +119,7 @@ Savings are real for the zipapp (full ≈ 127 KB, slim ≈ 72 KB, minimal ≈ 49
 
 ## Features
 
-### One binary, seventy-three utilities
+### One binary, eighty-four utilities
 
 Every common POSIX tool you'd reach for in a shell pipeline — plus `jq` for JSON, `http` for HTTP, `dig` for DNS, `nc` for TCP, and the BusyBox parity gap-fillers (`dd`, `od`, `hexdump`, `diff`, `join`, `fmt`, …). Dispatch via `mainsail <applet>` or symlink/hardlink to call the applet directly.
 
@@ -179,16 +187,17 @@ Same SHA-256 of `"abc"` (`ba7816bf…015ad`) on every supported platform. `tar` 
 | Category    | Applets |
 |-------------|---------|
 | File ops    | `ls` `cp` `mv` `rm` `mkdir` `touch` `find` `chmod` `ln` `stat` `truncate` `mktemp` `dd` |
-| Text        | `cat` `tac` `rev` `grep` `head` `tail` `wc` `nl` `sort` `uniq` `cut` `paste` `tr` `sed` `awk` `tee` `xargs` `printf` `echo` `expand` `unexpand` `split` `cmp` `comm` `diff` `join` `fmt` `od` `hexdump` |
+| Text        | `cat` `tac` `rev` `grep` `head` `tail` `wc` `nl` `sort` `uniq` `cut` `paste` `tr` `sed` `awk` `tee` `xargs` `printf` `echo` `expand` `unexpand` `split` `cmp` `comm` `diff` `join` `fmt` `fold` `column` `od` `hexdump` `base64` |
 | **JSON**    | **`jq`** _(practical subset: pipes, filters, select/map/sort_by, object & array constructors, 40+ built-in functions)_ |
 | **Network** | **`http`** _(curl-style GET/POST with headers, body, JSON, redirects)_ • **`dig`** _(DNS A/AAAA/MX/TXT/CNAME/NS/SOA/PTR via direct UDP queries)_ • **`nc`** _(TCP netcat: connect, listen, port-scan)_ |
 | Hashing     | `md5sum` `sha1sum` `sha256sum` `sha512sum` |
 | Archives    | `tar` `gzip` `gunzip` `zip` `unzip` |
 | Filesystem  | `du` `df` |
 | Paths       | `basename` `dirname` `realpath` `pwd` `which` |
-| System      | `uname` `hostname` `whoami` `date` `env` `sleep` `getopt` |
+| Process     | `watch` `timeout` |
+| System      | `uname` `hostname` `whoami` `id` `groups` `date` `env` `sleep` `getopt` `uuidgen` |
 | Control     | `true` `false` `yes` `seq` |
-| **Lifecycle** | **`completions`** _(emit bash/zsh/fish/powershell completion scripts)_ • **`update`** _(self-update from the latest GitHub release; atomic replace, keeps `.old` next to the binary)_ |
+| **Lifecycle** | **`install-aliases`** _(symlink every applet into a target dir so `ls` runs mainsail's ls)_ • **`completions`** _(emit bash/zsh/fish/powershell completion scripts)_ • **`update`** _(self-update from the latest GitHub release; atomic replace, keeps `.old` next to the binary)_ |
 
 Run `mainsail --list` for the full set with one-line descriptions, or `mainsail <applet> --help` for per-applet usage and flags.
 

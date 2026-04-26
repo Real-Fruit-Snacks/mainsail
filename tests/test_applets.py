@@ -3306,3 +3306,229 @@ def test_update_arch_detection(invoke, workspace):
     assert _default_asset_name(Path("mainsail-linux-x64-musl")) == "mainsail-linux-x64-musl"
     assert _default_asset_name(Path("mainsail-windows-x64.exe")) == "mainsail-windows-x64.exe"
 
+
+# ─── install-aliases ───────────────────────────────────────────────
+
+def test_install_aliases_help(invoke, workspace):
+    rc, out, _ = invoke("install-aliases", "--help")
+    assert rc == 0
+    assert "install-aliases -" in out
+
+
+def test_install_aliases_rejects_module_mode(invoke, workspace):
+    """python -m mainsail has no single artifact to symlink to."""
+    rc, _, errtxt = invoke("install-aliases", "--dry-run", str(workspace))
+    assert rc == 2
+    assert "single-file binary" in errtxt or "python -m mainsail" in errtxt
+
+
+# ─── base64 ─────────────────────────────────────────────────────────
+
+def test_base64_encode(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"hello world")
+    rc, out, _ = invoke("base64")
+    assert rc == 0
+    assert out.strip() == "aGVsbG8gd29ybGQ="
+
+
+def test_base64_decode(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"aGVsbG8gd29ybGQ=")
+    rc, out, _ = invoke("base64", "-d")
+    assert rc == 0
+    assert out == "hello world"
+
+
+def test_base64_roundtrip_file(invoke, workspace):
+    f = workspace / "src.bin"
+    payload = b"the quick brown fox jumps over the lazy dog"
+    f.write_bytes(payload)
+    rc, encoded, _ = invoke("base64", str(f))
+    assert rc == 0
+    assert encoded.strip() == "dGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIHRoZSBsYXp5IGRvZw=="
+
+
+def test_base64_wrap(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"x" * 100)
+    rc, out, _ = invoke("base64", "-w", "20")
+    assert rc == 0
+    # Each non-final line should be exactly 20 chars
+    for line in out.splitlines()[:-1]:
+        assert len(line) <= 20
+
+
+def test_base64_invalid_input(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"not valid base64!!!")
+    rc, _, errtxt = invoke("base64", "-d")
+    assert rc == 1
+    assert "invalid input" in errtxt or errtxt  # error printed
+
+
+# ─── uuidgen ────────────────────────────────────────────────────────
+
+def test_uuidgen_default_random(invoke, workspace):
+    rc, out, _ = invoke("uuidgen")
+    assert rc == 0
+    import re
+    assert re.match(
+        r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+        out.strip(),
+    ), out
+
+
+def test_uuidgen_hex_no_dashes(invoke, workspace):
+    rc, out, _ = invoke("uuidgen", "--hex")
+    assert rc == 0
+    assert "-" not in out.strip()
+    assert len(out.strip()) == 32
+
+
+def test_uuidgen_upper(invoke, workspace):
+    rc, out, _ = invoke("uuidgen", "--upper")
+    assert rc == 0
+    s = out.strip().replace("-", "")
+    assert s == s.upper()
+
+
+def test_uuidgen_count(invoke, workspace):
+    rc, out, _ = invoke("uuidgen", "--count", "5")
+    assert rc == 0
+    assert len(out.strip().splitlines()) == 5
+
+
+def test_uuidgen_md5_namespace(invoke, workspace):
+    rc, out, _ = invoke("uuidgen", "--md5", "-n", "@dns", "-N", "example.com")
+    assert rc == 0
+    # uuid3(NAMESPACE_DNS, "example.com") is deterministic
+    assert out.strip() == "9073926b-929f-31c2-abc9-fad77ae3e8eb"
+
+
+# ─── fold ───────────────────────────────────────────────────────────
+
+def test_fold_default_80(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"x" * 100 + b"\n")
+    rc, out, _ = invoke("fold")
+    assert rc == 0
+    lines = out.split("\n")
+    # 100 chars at width 80 -> "x"*80 then "x"*20
+    assert lines[0] == "x" * 80
+    assert lines[1] == "x" * 20
+
+
+def test_fold_custom_width(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"abcdefghij\n")
+    rc, out, _ = invoke("fold", "-w", "5")
+    assert rc == 0
+    assert out.split("\n")[:2] == ["abcde", "fghij"]
+
+
+def test_fold_space_break(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"the quick brown fox\n")
+    rc, out, _ = invoke("fold", "-w", "10", "-s")
+    assert rc == 0
+    # First line must end at a space-aligned boundary <= 10
+    first = out.split("\n", 1)[0]
+    assert len(first) <= 10
+    assert first.endswith(" ") or first == "the quick"
+
+
+# ─── column ─────────────────────────────────────────────────────────
+
+def test_column_table(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"alice 30 admin\nbob 7 user\nlongname 100 root\n")
+    rc, out, _ = invoke("column", "-t")
+    assert rc == 0
+    # Lines should align: column 1 widths align across rows
+    lines = [l for l in out.split("\n") if l]
+    # Find position of '30'/'7'/'100' — should all start at the same column
+    cols_2 = [line.split()[1] for line in lines]
+    starts = [line.index(cols_2[i]) for i, line in enumerate(lines)]
+    assert len(set(starts)) == 1, f"columns not aligned: {lines}"
+
+
+def test_column_table_custom_separator(invoke, workspace, monkeypatch):
+    _with_stdin(monkeypatch, b"a:1\nbb:22\n")
+    rc, out, _ = invoke("column", "-t", "-s", ":")
+    assert rc == 0
+    assert "a" in out and "bb" in out
+
+
+# ─── timeout ────────────────────────────────────────────────────────
+
+def test_timeout_command_completes_in_time(invoke, workspace):
+    rc, _, _ = invoke("timeout", "5", sys.executable, "-c", "print('ok')")
+    assert rc == 0
+
+
+def test_timeout_kills_long_command(invoke, workspace):
+    rc, _, _ = invoke("timeout", "0.2", sys.executable, "-c",
+                      "import time; time.sleep(5)")
+    # POSIX-spec: timeout exit code is 124
+    assert rc == 124
+
+
+def test_timeout_invalid_duration(invoke, workspace):
+    rc, _, errtxt = invoke("timeout", "abc", "true")
+    assert rc == 125
+    assert "invalid duration" in errtxt
+
+
+def test_timeout_missing_args(invoke, workspace):
+    rc, _, errtxt = invoke("timeout")
+    assert rc == 125
+    assert "usage" in errtxt or "DURATION" in errtxt
+
+
+# ─── id ─────────────────────────────────────────────────────────────
+
+def test_id_help(invoke, workspace):
+    rc, out, _ = invoke("id", "--help")
+    assert rc == 0
+    assert "id -" in out
+
+
+def test_id_default_emits_uid_or_username(invoke, workspace):
+    rc, out, _ = invoke("id")
+    assert rc == 0
+    # On POSIX we get "uid=...(name)..."; on Windows we get "uid=?(name)..."
+    assert "uid=" in out
+
+
+def test_id_user_only(invoke, workspace):
+    rc, out, _ = invoke("id", "-u", "-n")
+    assert rc == 0
+    assert out.strip()  # something printed
+
+
+# ─── groups ─────────────────────────────────────────────────────────
+
+def test_groups_help(invoke, workspace):
+    rc, out, _ = invoke("groups", "--help")
+    assert rc == 0
+    assert "groups -" in out
+
+
+def test_groups_emits_something(invoke, workspace):
+    rc, out, _ = invoke("groups")
+    assert rc == 0
+    assert out.strip()
+
+
+# ─── watch ──────────────────────────────────────────────────────────
+
+def test_watch_help(invoke, workspace):
+    rc, out, _ = invoke("watch", "--help")
+    assert rc == 0
+    assert "watch -" in out
+
+
+def test_watch_no_command(invoke, workspace):
+    rc, _, errtxt = invoke("watch")
+    assert rc == 2
+    assert "no command" in errtxt
+
+
+def test_watch_invalid_interval(invoke, workspace):
+    rc, _, errtxt = invoke("watch", "-n", "abc", "echo")
+    assert rc == 2
+    assert "invalid interval" in errtxt
+
