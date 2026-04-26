@@ -7,6 +7,43 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-04-25
+
+The "lifecycle" release. Two new applets that focus on the experience
+of *living with* mainsail rather than what it can compute.
+
+Applets: 73 → **75** &nbsp;·&nbsp; Tests: 361 → **373** (12 new)
+
+### Added
+- **`mainsail completions {bash,zsh,fish,powershell}`** — emit a shell
+  completion script on stdout. Each generator calls `mainsail --list`
+  at completion time, so the script stays accurate as new applets
+  ship — no need to regenerate after `mainsail update`. `pwsh` is
+  accepted as a synonym for `powershell`.
+- **`mainsail update`** — replace the running binary with the newest
+  GitHub release matching the current artifact (architecture + OS +
+  preset + `.pyz` extension). Smoke-tests the downloaded binary with
+  `--version` before swapping, and atomically replaces using
+  `os.replace`. The previous binary is renamed to `<name>.old` next to
+  it so a manual revert is `mv` away. Flags: `--check` (dry-run),
+  `--force` (re-download even if up-to-date), `--asset NAME`
+  (override autodetection).
+- README: a new **"Wire up your shell + stay current"** quick-start
+  section showing the canonical install lines for completions and
+  update.
+- docs site: new **Lifecycle** pill group (cyan accent) for
+  `completions` + `update`; install + usage terminals demonstrate
+  both.
+
+### Notes
+- `mainsail update` won't run when invoked as `python -m mainsail` —
+  there's no single artifact to swap. It prints a clear message
+  pointing at the Releases page (or `pip install -U mainsail`, when
+  we publish to PyPI).
+- On Windows, the running `.exe` can't be deleted but it CAN be
+  renamed; `update` exploits that to atomic-swap without an external
+  helper script.
+
 ## [0.2.1] - 2026-04-25
 
 Closing out the original "items 1, 4, 5" plan with the remaining
@@ -351,7 +388,8 @@ Initial release.
 - GitHub Actions CI matrix: Linux / macOS / Windows × Python 3.10–3.13
 - Release workflow that builds and publishes binaries on tag push
 
-[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/Real-Fruit-Snacks/mainsail/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.3.0
 [0.2.1]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.2.1
 [0.2.0]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.2.0
 [0.1.15]: https://github.com/Real-Fruit-Snacks/mainsail/releases/tag/v0.1.15

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>mainsail — Unix utilities, in one binary</title>
-    <meta name="description" content="73 utilities in one ~5-7 MB binary: POSIX coreutils plus jq, an HTTP client, a DNS resolver, and a TCP netcat. Native Windows — no WSL. Ships six native targets plus a portable zipapp for ESXi.">
+    <meta name="description" content="75 utilities in one ~5-7 MB binary: POSIX coreutils plus jq, an HTTP client, a DNS resolver, a TCP netcat, shell completions, and self-update. Native Windows — no WSL. Ships six native targets plus a portable zipapp for ESXi.">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='16' y='24' text-anchor='middle' font-family='Inter,sans-serif' font-size='24' font-weight='800' fill='%2374c7ec'%3EM%3C/text%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -114,6 +114,8 @@
         .pill-group[data-accent="red"]     .pill{color:var(--red);border-color:rgba(243,139,168,.35)}
         .pill-group[data-accent="lavender"] .pill-group-label,
         .pill-group[data-accent="lavender"] .pill{color:var(--accent2);border-color:rgba(180,190,254,.35)}
+        .pill-group[data-accent="blue"]    .pill-group-label,
+        .pill-group[data-accent="blue"]    .pill{color:var(--accentmid);border-color:rgba(137,180,250,.35)}
 
         /* ── Arch ── */
         .arch-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
@@ -170,7 +172,7 @@
         <div class="container">
             <div class="hero-logo animate"><img src="assets/logo-dark.svg" alt="mainsail"></div>
             <h1 class="hero-tagline animate" style="transition-delay:.1s">Unix utilities, in one binary, anywhere.</h1>
-            <p class="hero-desc animate" style="transition-delay:.2s">A BusyBox-style multi-call binary in Python — 73 Unix utilities, one ~5–7 MB executable, native on Linux, Windows, and macOS.</p>
+            <p class="hero-desc animate" style="transition-delay:.2s">A BusyBox-style multi-call binary in Python — 75 Unix utilities, one ~5–7 MB executable, native on Linux, Windows, and macOS.</p>
             <div class="hero-ctas animate" style="transition-delay:.3s">
                 <a href="https://github.com/Real-Fruit-Snacks/mainsail/releases/latest" class="btn-primary">Download Latest</a>
                 <a href="https://github.com/Real-Fruit-Snacks/mainsail" class="btn-secondary">View Source</a>
@@ -200,9 +202,9 @@
     <!-- Stats -->
     <div class="container">
         <div class="stats animate">
-            <div class="stat"><div class="stat-num" data-target="73">0</div><div class="stat-label">Applets</div></div>
+            <div class="stat"><div class="stat-num" data-target="75">0</div><div class="stat-label">Applets</div></div>
             <div class="stat-div"></div>
-            <div class="stat"><div class="stat-num" data-target="361">0</div><div class="stat-label">Tests</div></div>
+            <div class="stat"><div class="stat-num" data-target="373">0</div><div class="stat-label">Tests</div></div>
             <div class="stat-div"></div>
             <div class="stat"><div class="stat-num" data-target="6" data-suffix="MB">0</div><div class="stat-label">Binary</div></div>
             <div class="stat-div"></div>
@@ -222,9 +224,9 @@
 
             <div class="bento">
                 <div class="bento-card bento-hero animate" style="transition-delay:.1s">
-                    <h3>One Binary, 73 Utilities</h3>
+                    <h3>One Binary, 75 Utilities</h3>
                     <p>Every common shell tool dispatched through a single executable — POSIX coreutils plus <code>jq</code>, <code>http</code>, <code>dig</code>, <code>nc</code>, and the BusyBox parity gap-fillers (<code>dd</code>, <code>od</code>, <code>hexdump</code>, <code>diff</code>, …). Multi-call mode lets you hardlink to applet names so <code>ls</code> just works.</p>
-                    <div class="mini-terminal"><span class="t-g">$</span> mainsail --list | wc -l<br><span class="t-b">73</span><br><span class="t-g">$</span> ln mainsail ls && ./ls -la</div>
+                    <div class="mini-terminal"><span class="t-g">$</span> mainsail --list | wc -l<br><span class="t-b">75</span><br><span class="t-g">$</span> ln mainsail ls && ./ls -la</div>
                 </div>
                 <div class="bento-card bento-stat animate" style="transition-delay:.18s">
                     <div class="big">5–7<span style="font-size:24px">MB</span></div>
@@ -243,7 +245,7 @@
                     <p>Binary-safe through <code>cat</code>/<code>tee</code>/<code>gzip</code>. <code>tail -f</code> with rotation detection. <code>xargs -0</code> for paths with backslashes.</p>
                 </div>
                 <div class="bento-card bento-stat animate" style="transition-delay:.1s">
-                    <div class="big" style="color:var(--teal)">361</div>
+                    <div class="big" style="color:var(--teal)">373</div>
                     <div class="label">Unit Tests</div>
                 </div>
                 <div class="bento-card bento-hero animate" style="transition-delay:.18s">
@@ -271,7 +273,7 @@
     <section id="applets" style="background:var(--mantle)">
         <div class="container">
             <div class="section-label animate">APPLETS</div>
-            <h2 class="section-title animate" style="transition-delay:.08s">All 73, organized</h2>
+            <h2 class="section-title animate" style="transition-delay:.08s">All 75, organized</h2>
             <p class="section-desc animate" style="transition-delay:.16s">Each applet implements common POSIX flags. Run <code>mainsail &lt;applet&gt; --help</code> for per-applet usage.</p>
 
             <div class="pill-group animate" data-accent="green">
@@ -378,6 +380,14 @@
                 </div>
             </div>
 
+            <div class="pill-group animate" style="transition-delay:.27s" data-accent="blue">
+                <div class="pill-group-label">Lifecycle</div>
+                <div class="pills">
+                    <div class="pill">completions</div>
+                    <div class="pill">update</div>
+                </div>
+            </div>
+
             <div class="pill-group animate" style="transition-delay:.24s" data-accent="lavender">
                 <div class="pill-group-label">System & control</div>
                 <div class="pills">
@@ -422,7 +432,7 @@
                 <div class="arch-card animate" style="transition-delay:.4s">
                     <div class="arch-num">4</div>
                     <h3>Applets</h3>
-                    <p>73 modules in <code>mainsail/applets/</code>, ranging from ~10 lines (<code>true</code>) to ~1800 (<code>awk</code>). Read binary via <code>sys.stdin.buffer</code>; write via <code>sys.stdout</code> / <code>sys.stdout.buffer</code>. Return 0 / 1 / 2 (success / runtime / usage).</p>
+                    <p>75 modules in <code>mainsail/applets/</code>, ranging from ~10 lines (<code>true</code>) to ~1800 (<code>awk</code>). Read binary via <code>sys.stdin.buffer</code>; write via <code>sys.stdout</code> / <code>sys.stdout.buffer</code>. Return 0 / 1 / 2 (success / runtime / usage).</p>
                 </div>
             </div>
         </div>
@@ -442,7 +452,7 @@
 <span class="t-g">$</span> cd mainsail && pip install -e .
 
 <span class="t-g">$</span> mainsail --version
-<span class="t-b">mainsail 0.2.1</span>
+<span class="t-b">mainsail 0.3.0</span>
 
 <span class="t-m"># Or freeze a standalone binary
 # (CI ships glibc + musl variants on every release)</span>
@@ -475,9 +485,9 @@
 <span class="t-g">$</span> mainsail http -H 'Authorization: Bearer $T' https://api/me
 <span class="t-g">$</span> mainsail dig MX gmail.com +short
 
-<span class="t-m"># Windows-native aliases</span>
-<span class="t-g">$</span> mainsail dir .                   :: == ls
-<span class="t-g">$</span> mainsail copy a.txt b.txt        :: == cp
+<span class="t-m"># Tab-complete applets, then keep current</span>
+<span class="t-g">$</span> mainsail completions bash | sudo tee /etc/bash_completion.d/mainsail
+<span class="t-g">$</span> mainsail update                  <span class="t-m"># self-update from latest release</span>
 
 <span class="t-m"># ESXi via the portable zipapp</span>
 <span class="t-g">$</span> ssh esxi 'python3 mainsail.pyz du -h /vmfs/...'</pre></div>

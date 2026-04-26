@@ -3205,3 +3205,104 @@ def test_nc_unsupported_udp(invoke, workspace):
     assert rc == 2
     assert "UDP" in errtxt
 
+
+# ─── completions ────────────────────────────────────────────────────
+
+def test_completions_bash(invoke, workspace):
+    rc, out, _ = invoke("completions", "bash")
+    assert rc == 0
+    assert "_mainsail_complete" in out
+    assert "complete -F _mainsail_complete mainsail" in out
+
+
+def test_completions_zsh(invoke, workspace):
+    rc, out, _ = invoke("completions", "zsh")
+    assert rc == 0
+    assert "#compdef mainsail" in out
+    assert "_describe" in out
+
+
+def test_completions_fish(invoke, workspace):
+    rc, out, _ = invoke("completions", "fish")
+    assert rc == 0
+    assert "complete -c mainsail" in out
+    assert "__fish_is_first_token" in out
+
+
+def test_completions_powershell(invoke, workspace):
+    rc, out, _ = invoke("completions", "powershell")
+    assert rc == 0
+    assert "Register-ArgumentCompleter" in out
+
+
+def test_completions_pwsh_alias(invoke, workspace):
+    rc, out, _ = invoke("completions", "pwsh")
+    assert rc == 0
+    assert "Register-ArgumentCompleter" in out
+
+
+def test_completions_unknown_shell(invoke, workspace):
+    rc, _, errtxt = invoke("completions", "tcsh")
+    assert rc == 2
+    assert "unknown shell" in errtxt
+
+
+def test_completions_no_args_shows_help(invoke, workspace):
+    rc, out, _ = invoke("completions")
+    assert rc == 0
+    assert "completions -" in out
+
+
+def test_completions_dynamic_applet_listing(invoke, workspace):
+    """Each generator should call mainsail --list at runtime, not bake
+    the applet list into the script — so adding new applets doesn't
+    require regenerating completions."""
+    for shell in ("bash", "zsh", "fish", "powershell"):
+        rc, out, _ = invoke("completions", shell)
+        assert rc == 0, shell
+        assert "--list" in out, f"{shell} should fetch applet list dynamically"
+
+
+# ─── update ─────────────────────────────────────────────────────────
+
+def test_update_help(invoke, workspace):
+    rc, out, _ = invoke("update", "--help")
+    assert rc == 0
+    assert "update -" in out
+
+
+def test_update_rejects_module_mode(invoke, workspace):
+    """When running as `python -m mainsail`, sys.argv[0] points at
+    __main__.py — there's no single artifact to replace, so update
+    should refuse with a clear message."""
+    rc, _, errtxt = invoke("update")
+    assert rc == 2
+    assert "single-file binary" in errtxt or "python -m mainsail" in errtxt
+
+
+def test_update_unknown_option(invoke, workspace):
+    rc, _, errtxt = invoke("update", "--bogus")
+    assert rc == 2
+    assert "unknown option" in errtxt
+
+
+# Live-network and binary-replacement paths require an actual frozen
+# binary to test against — covered by the smoke step in release.yml,
+# not the unit suite.
+
+def test_update_arch_detection(invoke, workspace):
+    from mainsail.applets.update import _detect_arch, _default_asset_name
+    from pathlib import Path
+
+    # Arch detection returns one of x64/arm64/None
+    arch = _detect_arch()
+    assert arch in {"x64", "arm64", None}
+
+    # PyZ asset detection by extension
+    assert _default_asset_name(Path("mainsail.pyz")) == "mainsail.pyz"
+
+    # Release-style basenames pass through
+    assert _default_asset_name(Path("mainsail-linux-x64-slim")) == "mainsail-linux-x64-slim"
+    assert _default_asset_name(Path("mainsail-linux-x64-musl")) == "mainsail-linux-x64-musl"
+    assert _default_asset_name(Path("mainsail-windows-x64.exe")) == "mainsail-windows-x64.exe"
+

@@ -10,9 +10,9 @@
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Windows%20%7C%20macOS-lightgrey)
 ![Arch](https://img.shields.io/badge/arch-x86__64%20%7C%20ARM64-blue)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Tests](https://img.shields.io/badge/tests-361%20passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-373%20passing-brightgreen.svg)
 
-A BusyBox-style multi-call binary in Python — **73 Unix utilities**, one ~5–7 MB executable, native on Linux, Windows, and macOS.
+A BusyBox-style multi-call binary in Python — **75 Unix utilities**, one ~5–7 MB executable, native on Linux, Windows, and macOS.
 
 [Download Latest](https://github.com/Real-Fruit-Snacks/mainsail/releases/latest)
 &nbsp;·&nbsp;
@@ -42,6 +42,14 @@ git clone https://github.com/Real-Fruit-Snacks/mainsail.git
 cd mainsail
 pip install -e .
 mainsail --list
+```
+
+**Wire up your shell + stay current:**
+
+```bash
+mainsail completions bash | sudo tee /etc/bash_completion.d/mainsail   # tab-complete applets
+mainsail update                                                        # self-update from latest GitHub release
+mainsail update --check                                                # see what would change without downloading
 ```
 
 ---
@@ -180,6 +188,7 @@ Same SHA-256 of `"abc"` (`ba7816bf…015ad`) on every supported platform. `tar` 
 | Paths       | `basename` `dirname` `realpath` `pwd` `which` |
 | System      | `uname` `hostname` `whoami` `date` `env` `sleep` `getopt` |
 | Control     | `true` `false` `yes` `seq` |
+| **Lifecycle** | **`completions`** _(emit bash/zsh/fish/powershell completion scripts)_ • **`update`** _(self-update from the latest GitHub release; atomic replace, keeps `.old` next to the binary)_ |
 
 Run `mainsail --list` for the full set with one-line descriptions, or `mainsail <applet> --help` for per-applet usage and flags.
 

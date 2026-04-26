@@ -1011,4 +1011,46 @@ Options:
   -4 / -6           force IPv4 or IPv6
   -u                UDP mode (NOT supported in this build)
 """,
+    # ---- v0.3.0 additions: completions + update ---------------------------
+    "completions": """\
+Usage: mainsail completions {bash | zsh | fish | powershell}
+
+Emit a shell completion script on stdout. Pipe it to wherever your
+shell looks for completions:
+
+  bash:        mainsail completions bash | sudo tee /etc/bash_completion.d/mainsail
+  zsh:         mainsail completions zsh > ~/.zsh/completions/_mainsail
+  fish:        mainsail completions fish > ~/.config/fish/completions/mainsail.fish
+  powershell:  mainsail completions powershell | Out-String | Invoke-Expression
+
+The generated scripts call `mainsail --list` at completion time to
+resolve the applet list, so they stay accurate as you upgrade — no
+need to regenerate after `mainsail update`.
+
+Aliases: `pwsh` is accepted as a synonym for `powershell`.
+""",
+    "update": """\
+Usage: mainsail update [OPTION]...
+
+Replace the running binary with the newest GitHub release matching
+this artifact (architecture, OS, preset, .pyz extension). The previous
+binary is renamed to <name>.old next to it so a manual revert is one
+mv away.
+
+Options:
+  --check               print what would change, don't download
+  --force               re-download even when versions match
+  --asset NAME          override autodetection of the release asset
+                        (e.g. `--asset mainsail-linux-x64-slim`)
+
+Asset autodetection:
+  - basename starts with `mainsail-`?  use it as-is (lets renamed
+    `mainsail-linux-x64-slim`/`-musl`/etc. find the right asset)
+  - extension is `.pyz`?               `mainsail.pyz`
+  - otherwise                          mainsail-{linux,windows,macos}-{x64,arm64}[.exe]
+
+Won't run when invoked as `python -m mainsail` — there's no single
+artifact to swap. Use `pip install -U mainsail` (when on PyPI) or
+download a binary from the Releases page.
+""",
 }
