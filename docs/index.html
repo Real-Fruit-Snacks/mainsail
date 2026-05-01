@@ -1,571 +1,485 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>mainsail — Unix utilities, in one binary</title>
-    <meta name="description" content="84 utilities in one ~5-7 MB binary: POSIX coreutils plus jq, an HTTP client, a DNS resolver, a TCP netcat, watch, timeout, base64, uuidgen, shell completions, and self-update. Native Windows — no WSL. Ships six native targets plus a portable zipapp for ESXi.">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='16' y='24' text-anchor='middle' font-family='Inter,sans-serif' font-size='24' font-weight='800' fill='%2374c7ec'%3EM%3C/text%3E%3C/svg%3E">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        :root{
-            --accent1:#74c7ec;--accent2:#b4befe;--accentmid:#89b4fa;
-            --accentrgb:116,199,236;
-            --text:#cdd6f4;--sub1:#bac2de;--sub0:#a6adc8;
-            --ov2:#9399b2;--ov1:#7f849c;--ov0:#6c7086;
-            --sf2:#585b70;--sf1:#45475a;--sf0:#313244;
-            --base:#1e1e2e;--mantle:#181825;--crust:#11111b;
-            --green:#a6e3a1;--yellow:#f9e2af;--red:#f38ba8;
-            --peach:#fab387;--mauve:#cba6f7;--teal:#94e2d5;--pink:#f5c2e7;
-        }
-        body{font-family:'Inter',system-ui,sans-serif;background:var(--crust);color:var(--text);line-height:1.7;overflow-x:hidden}
-        ::selection{background:rgba(var(--accentrgb),0.3);color:var(--text)}
-        .container{max-width:1140px;margin:0 auto;padding:0 28px}
-        code{font-family:'JetBrains Mono',monospace;background:var(--mantle);padding:2px 7px;border-radius:3px;font-size:.88em;color:var(--green)}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mainsail / Python BusyBox-style multi-call binary</title>
+<meta name="description" content="BusyBox-style multi-call binary in Python. 84 Unix utilities, ~6 MB Nuitka onefile or ~148 KB portable zipapp. Reference implementation for the jib/topsail/staysail/moonraker/rill ports.">
+<meta property="og:title" content="Mainsail — Python multi-call binary">
+<meta property="og:description" content="84 applets · ~6 MB Nuitka or ~148 KB pyz · 13 release artifacts · 402 tests · the reference implementation.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%231e1e2e'/%3E%3Ctext x='16' y='23' text-anchor='middle' font-family='Inter,sans-serif' font-size='20' font-weight='800' fill='%23cdd6f4'%3EM%3Ctspan fill='%23cba6f7'%3E.%3C/tspan%3E%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --base:#1e1e2e;--mantle:#181825;--crust:#11111b;
+  --sf0:#313244;--sf1:#45475a;--sf2:#585b70;
+  --ov0:#6c7086;--ov1:#7f849c;--ov2:#9399b2;
+  --sub0:#a6adc8;--sub1:#bac2de;--text:#cdd6f4;
+  --mauve:#cba6f7;--lav:#b4befe;--blue:#89b4fa;--sky:#89dceb;
+  --teal:#94e2d5;--green:#a6e3a1;--yellow:#f9e2af;--peach:#fab387;--red:#f38ba8;
+  --accent:#cba6f7; /* Mainsail's color — mauve, the canonical reference */
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--crust);color:var(--text);
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+  font-size:15px;line-height:1.5;
+}
+::selection{background:var(--accent);color:var(--crust)}
+a{color:inherit;text-decoration:none}
+.mono{font-family:'JetBrains Mono','SF Mono',monospace}
 
-        /* ── Nav ── */
-        .nav{position:fixed;top:0;left:0;right:0;height:56px;background:rgba(17,17,27,0.8);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(49,50,68,0.5);z-index:1000;display:flex;align-items:center;justify-content:center}
-        .nav-inner{max-width:1140px;width:100%;padding:0 28px;display:flex;align-items:center;justify-content:space-between}
-        .nav-logo{font-family:'Inter',sans-serif;font-size:16px;font-weight:700;color:var(--text);text-decoration:none}
-        .nav-links{display:flex;align-items:center;gap:28px}
-        .nav-links a{font-size:13px;font-weight:500;color:var(--ov0);text-decoration:none;transition:color .2s}
-        .nav-links a:hover{color:var(--text)}
-        .nav-cta{background:linear-gradient(135deg,var(--accent1),var(--accentmid));color:var(--crust);padding:7px 18px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;transition:box-shadow .2s,transform .2s}
-        .nav-cta:hover{box-shadow:0 0 20px rgba(var(--accentrgb),0.3);transform:translateY(-1px)}
+/* ─── Top status bar ─────────────────────────────── */
+.status{
+  background:var(--crust);border-bottom:1px solid var(--text);
+  padding:10px 24px;display:flex;justify-content:space-between;
+  font-family:'JetBrains Mono','SF Mono',monospace;font-size:11px;
+  letter-spacing:0.1em;text-transform:uppercase;color:var(--ov2);
+  position:sticky;top:0;z-index:10;
+}
+.status .left{display:flex;gap:24px;flex-wrap:wrap}
+.status .right{display:flex;gap:16px;flex-wrap:wrap}
+.status b{color:var(--accent);font-weight:700}
+.status .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:6px;vertical-align:middle;animation:pulse 2.5s infinite}
+.status a{color:var(--ov2);transition:color .15s}
+.status a:hover{color:var(--text)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 
-        /* ── Hero ── */
-        .hero{padding:140px 0 80px;text-align:center;position:relative}
-        .hero::before{content:'';position:absolute;top:60px;left:50%;transform:translateX(-50%);width:800px;height:400px;background:radial-gradient(ellipse,rgba(var(--accentrgb),0.08) 0%,transparent 60%);pointer-events:none}
-        .hero-logo{position:relative;max-width:600px;margin:0 auto 32px}
-        .hero-logo img{width:100%;height:auto}
-        .hero-tagline{position:relative;font-size:clamp(24px,3.5vw,38px);font-weight:700;line-height:1.2;margin-bottom:16px;background:linear-gradient(135deg,var(--accent1),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-        .hero-desc{position:relative;font-size:16px;color:var(--ov0);max-width:580px;margin:0 auto 32px}
-        .hero-ctas{position:relative;display:flex;gap:12px;justify-content:center;margin-bottom:48px}
-        .btn-primary{background:linear-gradient(135deg,var(--accent1),var(--accentmid));color:var(--crust);padding:12px 28px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;text-decoration:none;transition:box-shadow .2s,transform .2s}
-        .btn-primary:hover{box-shadow:0 0 24px rgba(var(--accentrgb),0.35);transform:translateY(-2px)}
-        .btn-secondary{background:var(--sf0);color:var(--text);padding:12px 28px;border-radius:8px;border:1px solid var(--sf1);font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;text-decoration:none;transition:all .2s}
-        .btn-secondary:hover{background:var(--sf1);border-color:var(--sf2)}
+/* ─── Hero ─────────────────────────────────────── */
+.hero{
+  border-bottom:1px solid var(--text);
+  padding:64px 24px 0;
+}
+.hero-inner{max-width:1280px;margin:0 auto}
+.hero .pop{
+  font-family:'JetBrains Mono','SF Mono',monospace;
+  font-size:12px;font-weight:500;color:var(--ov1);
+  letter-spacing:0.1em;text-transform:uppercase;
+  display:block;margin-bottom:24px;
+}
+.hero h1{
+  font-family:'Inter',sans-serif;
+  font-size:clamp(64px,12vw,168px);
+  line-height:0.85;font-weight:800;
+  letter-spacing:-0.05em;color:var(--text);
+  margin-bottom:32px;
+}
+.hero h1 .dot{color:var(--accent)}
+.hero-grid{
+  display:grid;grid-template-columns:1fr 1fr 1fr 1fr;
+  gap:0;border-top:1px solid var(--sf1);
+}
+.hero-grid > div{padding:20px 24px;border-right:1px solid var(--sf1)}
+.hero-grid > div:last-child{border-right:none}
+.hero-grid .label{
+  font-family:'JetBrains Mono','SF Mono',monospace;
+  font-size:10px;color:var(--ov0);
+  letter-spacing:0.18em;text-transform:uppercase;margin-bottom:8px;
+}
+.hero-grid .value{
+  font-family:'Inter',sans-serif;
+  font-size:28px;font-weight:700;color:var(--text);
+  letter-spacing:-0.02em;
+}
+.hero-grid .value .unit{color:var(--accent);font-size:0.55em;font-weight:600;margin-left:2px}
 
-        /* ── Terminal ── */
-        .terminal{position:relative;max-width:800px;margin:0 auto;background:var(--mantle);border:1px solid var(--sf0);border-radius:12px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.5),0 0 24px rgba(var(--accentrgb),0.06)}
-        .terminal-bar{background:var(--crust);padding:12px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--sf0)}
-        .terminal-dot{width:12px;height:12px;border-radius:50%}
-        .terminal-dot:nth-child(1){background:var(--red)}
-        .terminal-dot:nth-child(2){background:var(--yellow)}
-        .terminal-dot:nth-child(3){background:var(--green)}
-        .terminal-label{flex:1;text-align:center;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ov0)}
-        .terminal-body{padding:24px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.9;text-align:left}
-        .terminal-body pre{margin:0;white-space:pre-wrap;word-wrap:break-word}
-        .t-g{color:var(--green)}.t-b{color:var(--accent1)}.t-m{color:var(--sub0)}.t-p{color:var(--peach)}.t-y{color:var(--yellow)}
+/* ─── Modular grid layout ─────────────────────── */
+.grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  border-bottom:1px solid var(--sf1);
+}
+.cell{
+  padding:48px 32px;border-right:1px solid var(--sf1);position:relative;
+}
+.cell:last-child{border-right:none}
+.cell.full{grid-column:1/-1;border-right:none}
+.cell-header{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:24px;padding-bottom:14px;
+  border-bottom:1px dashed var(--sf1);
+}
+.cell-num{
+  font-family:'JetBrains Mono','SF Mono',monospace;font-size:11px;
+  color:var(--accent);letter-spacing:0.15em;font-weight:700;
+}
+.cell-name{
+  font-family:'Inter',sans-serif;font-size:13px;color:var(--ov2);
+  letter-spacing:0.2em;text-transform:uppercase;font-weight:500;
+}
+.cell h2{
+  font-size:36px;line-height:1.05;font-weight:700;
+  letter-spacing:-0.025em;margin-bottom:16px;
+}
+.cell h2 mark{background:var(--accent);color:var(--crust);padding:0 6px;font-style:normal}
+.cell p{color:var(--sub0);font-size:16px;line-height:1.65;margin-bottom:14px}
+.cell p strong{color:var(--text);font-weight:600}
+.cell p code{
+  font-family:'JetBrains Mono','SF Mono',monospace;font-size:13px;
+  background:var(--mantle);padding:2px 7px;border-radius:3px;color:var(--green);
+}
 
-        /* ── Stats ── */
-        .stats{display:flex;justify-content:center;gap:40px;padding:60px 0;position:relative}
-        .stat{text-align:center}
-        .stat-num{font-family:'JetBrains Mono',monospace;font-size:36px;font-weight:700;color:var(--accent1);line-height:1}
-        .stat-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--sf2);margin-top:6px;letter-spacing:2px;text-transform:uppercase}
-        .stat-div{width:1px;height:48px;background:var(--sf0);align-self:center}
+/* Spec table — KEY → VALUE */
+.feat{
+  display:grid;grid-template-columns:auto 1fr;
+  gap:18px 24px;margin-top:24px;
+  font-family:'JetBrains Mono','SF Mono',monospace;font-size:13px;
+}
+.feat .k{color:var(--accent);font-weight:700;letter-spacing:0.05em}
+.feat .v{color:var(--sub1);line-height:1.65}
+.feat .v b{color:var(--text);font-weight:600}
 
-        /* ── Sections ── */
-        section{padding:80px 0}
-        .section-label{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--accent1);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px}
-        .section-title{font-size:clamp(28px,4vw,40px);font-weight:700;margin-bottom:12px;letter-spacing:-.02em}
-        .section-desc{font-size:15px;color:var(--ov0);margin-bottom:48px;max-width:580px}
-        .gradient-line{height:1px;background:linear-gradient(90deg,transparent,var(--accent1),var(--accent2),transparent);margin:0 auto;max-width:600px}
+/* Code block */
+pre.code{
+  background:var(--mantle);border:1px solid var(--text);
+  border-left:6px solid var(--accent);padding:20px 24px;
+  font-family:'JetBrains Mono','SF Mono',monospace;
+  font-size:13px;line-height:1.85;color:var(--sub1);
+  overflow-x:auto;margin-top:20px;
+}
+pre.code .c{color:var(--ov0)}
+pre.code .k{color:var(--mauve);font-weight:500}
+pre.code .s{color:var(--green)}
+pre.code .p{color:var(--peach)}
+pre.code .v{color:var(--blue)}
 
-        /* ── Bento ── */
-        .bento{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-        .bento-card{background:var(--mantle);border:1px solid var(--sf0);border-radius:12px;padding:28px;transition:all .25s;position:relative;overflow:hidden}
-        .bento-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent1),var(--accent2));opacity:0;transition:opacity .25s}
-        .bento-card:hover{transform:translateY(-3px);border-color:var(--sf1);box-shadow:0 12px 32px rgba(0,0,0,0.25),0 0 20px rgba(var(--accentrgb),0.06)}
-        .bento-card:hover::before{opacity:1}
-        .bento-hero{grid-column:span 2}
-        .bento-card h3{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--accent1);margin-bottom:8px}
-        .bento-card p{font-size:13.5px;color:var(--sub0);line-height:1.6}
-        .bento-card .mini-terminal{background:var(--crust);border-radius:8px;padding:14px;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.8;text-align:left}
-        .bento-stat{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
-        .bento-stat .big{font-family:'JetBrains Mono',monospace;font-size:42px;font-weight:700;color:var(--accent1)}
-        .bento-stat .label{font-size:12px;color:var(--sf2);margin-top:4px;letter-spacing:1px}
+/* Reference / --help block */
+.ref{
+  background:var(--mantle);border:1px solid var(--sf0);
+  padding:24px 28px;font-family:'JetBrains Mono','SF Mono',monospace;
+  font-size:13px;line-height:1.85;color:var(--sub1);
+  overflow-x:auto;margin-top:20px;border-radius:0;
+}
+.ref h4{
+  font-size:10px;color:var(--ov0);letter-spacing:0.18em;
+  text-transform:uppercase;font-weight:600;margin:14px 0 8px;
+}
+.ref h4:first-child{margin-top:0}
+.ref code{color:var(--mauve);font-weight:500;display:inline-block;width:200px}
+.ref .desc{color:var(--sub1)}
+.ref .env{color:var(--peach);font-weight:500;display:inline-block;width:200px}
 
-        /* ── Pills ── */
-        .pill-group{margin-bottom:20px}
-        .pill-group-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ov0);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
-        .pills{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
-        .pill{background:var(--mantle);border:1px solid;border-radius:20px;padding:8px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;display:flex;align-items:center;gap:8px;transition:all .2s}
-        .pill:hover{background:var(--base);filter:brightness(1.25)}
-        .pill .alias{opacity:.55;font-size:11px;margin-left:auto}
-        /* Per-category accent colors. The color cascades to text + border;
-           the alias inherits and dims via opacity above. */
-        .pill-group[data-accent="green"]   .pill-group-label,
-        .pill-group[data-accent="green"]   .pill{color:var(--green);border-color:rgba(166,227,161,.35)}
-        .pill-group[data-accent="peach"]   .pill-group-label,
-        .pill-group[data-accent="peach"]   .pill{color:var(--peach);border-color:rgba(250,179,135,.35)}
-        .pill-group[data-accent="cyan"]    .pill-group-label,
-        .pill-group[data-accent="cyan"]    .pill{color:var(--accent1);border-color:rgba(116,199,236,.35)}
-        .pill-group[data-accent="mauve"]   .pill-group-label,
-        .pill-group[data-accent="mauve"]   .pill{color:var(--mauve);border-color:rgba(203,166,247,.35)}
-        .pill-group[data-accent="teal"]    .pill-group-label,
-        .pill-group[data-accent="teal"]    .pill{color:var(--teal);border-color:rgba(148,226,213,.35)}
-        .pill-group[data-accent="yellow"]  .pill-group-label,
-        .pill-group[data-accent="yellow"]  .pill{color:var(--yellow);border-color:rgba(249,226,175,.35)}
-        .pill-group[data-accent="red"]     .pill-group-label,
-        .pill-group[data-accent="red"]     .pill{color:var(--red);border-color:rgba(243,139,168,.35)}
-        .pill-group[data-accent="lavender"] .pill-group-label,
-        .pill-group[data-accent="lavender"] .pill{color:var(--accent2);border-color:rgba(180,190,254,.35)}
-        .pill-group[data-accent="blue"]    .pill-group-label,
-        .pill-group[data-accent="blue"]    .pill{color:var(--accentmid);border-color:rgba(137,180,250,.35)}
-        .pill-group[data-accent="pink"]    .pill-group-label,
-        .pill-group[data-accent="pink"]    .pill{color:var(--pink);border-color:rgba(245,194,231,.35)}
+/* Family table */
+.family{
+  margin-top:20px;border:1px solid var(--sf0);
+  font-family:'JetBrains Mono','SF Mono',monospace;font-size:13px;
+}
+.family .row{
+  display:grid;grid-template-columns:120px 90px 1fr;
+  border-bottom:1px solid var(--sf0);
+}
+.family .row:last-child{border-bottom:none}
+.family .row > div{padding:12px 16px;border-right:1px solid var(--sf0)}
+.family .row > div:last-child{border-right:none}
+.family .head{background:var(--mantle);color:var(--ov0);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600}
+.family .head > div{padding:10px 16px}
+.family .name{color:var(--text);font-weight:600}
+.family .lang{color:var(--sub0)}
+.family .desc{color:var(--sub1);font-family:'Inter',sans-serif;font-size:14px}
+.family .me{background:rgba(203,166,247,0.08)}
+.family .me .name{color:var(--accent)}
 
-        /* ── Arch ── */
-        .arch-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
-        .arch-card{background:var(--mantle);border:1px solid var(--sf0);border-radius:12px;padding:28px;transition:border-color .2s}
-        .arch-card:hover{border-color:var(--sf1)}
-        .arch-num{display:inline-flex;width:30px;height:30px;background:linear-gradient(135deg,var(--accent1),var(--accentmid));color:var(--crust);border-radius:50%;align-items:center;justify-content:center;font-weight:700;font-size:14px;margin-bottom:14px}
-        .arch-card h3{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--teal);margin-bottom:8px}
-        .arch-card p{font-size:13.5px;color:var(--sub0);line-height:1.6}
+/* Big call to action band */
+.band{
+  background:var(--text);color:var(--crust);
+  padding:48px 32px;border-bottom:1px solid var(--text);
+  display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:32px;
+}
+.band-tag{
+  font-family:'JetBrains Mono','SF Mono',monospace;font-size:11px;
+  letter-spacing:0.2em;text-transform:uppercase;font-weight:600;
+}
+.band h3{
+  font-family:'Inter',sans-serif;font-weight:700;
+  font-size:32px;line-height:1.1;letter-spacing:-0.02em;
+}
+.band a.cta{
+  background:var(--crust);color:var(--text);
+  padding:16px 28px;font-family:'JetBrains Mono','SF Mono',monospace;
+  font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;
+  border:1px solid var(--crust);transition:all 0.15s;white-space:nowrap;
+}
+.band a.cta:hover{background:var(--accent);color:var(--crust);border-color:var(--accent)}
 
-        /* ── Two Col ── */
-        .two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+/* Footer */
+footer{
+  padding:32px 24px;display:flex;justify-content:space-between;
+  font-family:'JetBrains Mono','SF Mono',monospace;font-size:11px;
+  color:var(--ov0);letter-spacing:0.1em;text-transform:uppercase;flex-wrap:wrap;gap:16px;
+}
+footer a{color:var(--ov2);border-bottom:1px solid var(--sf0);transition:all .15s}
+footer a:hover{color:var(--text);border-bottom-color:var(--text)}
 
-        /* ── Footer ── */
-        footer{padding:48px 0;margin-top:40px}
-        .footer-line{height:1px;background:linear-gradient(90deg,transparent,var(--accent1),var(--accent2),transparent);margin-bottom:48px}
-        .footer-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:32px}
-        .footer-grid h4{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);margin-bottom:14px;letter-spacing:2px;text-transform:uppercase}
-        .footer-grid ul{list-style:none}
-        .footer-grid li{margin-bottom:8px}
-        .footer-grid a{color:var(--ov2);text-decoration:none;font-size:13px;transition:color .2s}
-        .footer-grid a:hover{color:var(--accent1)}
-        .footer-grid p{font-size:13px;color:var(--ov1);line-height:1.7}
-        .footer-bottom{text-align:center;margin-top:36px;padding-top:24px;border-top:1px solid var(--sf0);font-size:12px;color:var(--ov0)}
-
-        /* ── Animate ── */
-        .animate{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
-        .animate.visible{opacity:1;transform:translateY(0)}
-        .animate-scale{opacity:0;transform:translateY(24px) scale(.97);transition:opacity .8s ease,transform .8s ease}
-        .animate-scale.visible{opacity:1;transform:translateY(0) scale(1)}
-
-        /* ── Responsive ── */
-        @media(max-width:960px){.bento{grid-template-columns:1fr 1fr}.bento-hero{grid-column:span 2}.two-col,.arch-grid{grid-template-columns:1fr}.footer-grid{grid-template-columns:repeat(2,1fr)}.stats{flex-wrap:wrap;gap:24px}}
-        @media(max-width:600px){.container{padding:0 16px}.hero{padding:100px 0 48px}.bento{grid-template-columns:1fr}.bento-hero{grid-column:span 1}.stats{gap:16px}.stat-div{display:none}.nav-links a:not(.nav-cta){display:none}.footer-grid{grid-template-columns:1fr}.pills{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}}
-
-        a:focus-visible{outline:2px solid var(--accent1);outline-offset:2px}
-    </style>
+@media (max-width:760px){
+  .hero h1{font-size:56px}
+  .hero-grid{grid-template-columns:1fr 1fr}
+  .grid{grid-template-columns:1fr}
+  .cell{border-right:none;border-bottom:1px solid var(--sf1)}
+  .cell:last-child{border-bottom:none}
+  .band{grid-template-columns:1fr;text-align:left}
+  .status{font-size:10px;padding:10px 14px}
+  .status .left,.status .right{gap:14px}
+  .family .row{grid-template-columns:90px 70px 1fr}
+}
+</style>
 </head>
 <body>
 
-    <!-- Nav -->
-    <nav class="nav"><div class="nav-inner">
-        <a href="#" class="nav-logo">mainsail</a>
-        <div class="nav-links">
-            <a href="#features">Features</a>
-            <a href="#applets">Applets</a>
-            <a href="#architecture">Architecture</a>
-            <a href="https://github.com/Real-Fruit-Snacks/mainsail">GitHub</a>
-            <a href="https://github.com/Real-Fruit-Snacks/mainsail/releases/latest" class="nav-cta">Download</a>
-        </div>
-    </div></nav>
+<div class="status">
+  <div class="left">
+    <span><b>MAINSAIL</b></span>
+    <span><span class="dot"></span>STATUS · STABLE · 402 TESTS</span>
+    <span>PYTHON 3.10+</span>
+  </div>
+  <div class="right">
+    <a href="https://github.com/Real-Fruit-Snacks/mainsail">REPO</a>
+    <a href="https://github.com/Real-Fruit-Snacks/mainsail/releases/latest">RELEASES</a>
+    <a href="https://github.com/Real-Fruit-Snacks/mainsail/blob/main/LICENSE">MIT</a>
+  </div>
+</div>
 
-    <!-- Hero -->
-    <section class="hero">
-        <div class="container">
-            <div class="hero-logo animate"><img src="assets/logo-dark.svg" alt="mainsail"></div>
-            <h1 class="hero-tagline animate" style="transition-delay:.1s">Unix utilities, in one binary, anywhere.</h1>
-            <p class="hero-desc animate" style="transition-delay:.2s">A BusyBox-style multi-call binary in Python — 84 Unix utilities, one ~5–7 MB executable, native on Linux, Windows, and macOS.</p>
-            <div class="hero-ctas animate" style="transition-delay:.3s">
-                <a href="https://github.com/Real-Fruit-Snacks/mainsail/releases/latest" class="btn-primary">Download Latest</a>
-                <a href="https://github.com/Real-Fruit-Snacks/mainsail" class="btn-secondary">View Source</a>
-            </div>
-            <div class="terminal animate-scale" style="transition-delay:.4s">
-                <div class="terminal-bar">
-                    <span class="terminal-dot"></span><span class="terminal-dot"></span><span class="terminal-dot"></span>
-                    <span class="terminal-label">mainsail</span>
-                </div>
-                <div class="terminal-body"><pre><span class="t-g">$</span> mainsail seq 100 | mainsail sort -rn | mainsail head -3
-<span class="t-y">100
-99
-98</span>
-
-<span class="t-g">$</span> mainsail find . -name '*.py' -size +1k -mtime -7
-<span class="t-m">./scripts/stress.py
-./mainsail/cli.py
-./mainsail/applets/sed.py</span>
-
-<span class="t-g">$</span> mainsail tar -czf src.tgz mainsail/ --exclude='*.pyc'
-<span class="t-g">$</span> mainsail sha256sum src.tgz
-<span class="t-b">d4f2a8b1c3e7… *src.tgz</span></pre></div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Stats -->
-    <div class="container">
-        <div class="stats animate">
-            <div class="stat"><div class="stat-num" data-target="84">0</div><div class="stat-label">Applets</div></div>
-            <div class="stat-div"></div>
-            <div class="stat"><div class="stat-num" data-target="402">0</div><div class="stat-label">Tests</div></div>
-            <div class="stat-div"></div>
-            <div class="stat"><div class="stat-num" data-target="6" data-suffix="MB">0</div><div class="stat-label">Binary</div></div>
-            <div class="stat-div"></div>
-            <div class="stat"><div class="stat-num" data-target="6">0</div><div class="stat-label">Targets</div></div>
-            <div class="stat-div"></div>
-            <div class="stat"><div class="stat-num" data-target="0" data-prefix="" data-suffix=" deps">0</div><div class="stat-label">Runtime</div></div>
-        </div>
-        <div class="gradient-line"></div>
+<section class="hero">
+  <div class="hero-inner">
+    <span class="pop">Real-Fruit-Snacks &nbsp;//&nbsp; multi-call binary &nbsp;//&nbsp; reference implementation</span>
+    <h1>MAINSAIL<span class="dot">.</span></h1>
+    <div class="hero-grid">
+      <div>
+        <div class="label">binary</div>
+        <div class="value">~6<span class="unit"> MB / 148 KB PYZ</span></div>
+      </div>
+      <div>
+        <div class="label">applets</div>
+        <div class="value">84<span class="unit">×</span></div>
+      </div>
+      <div>
+        <div class="label">artifacts</div>
+        <div class="value">13<span class="unit"> × FULL/SLIM/PYZ</span></div>
+      </div>
+      <div>
+        <div class="label">stack</div>
+        <div class="value">Python<span class="unit"> 3.10+</span></div>
+      </div>
     </div>
+  </div>
+</section>
 
-    <!-- Features Bento -->
-    <section id="features">
-        <div class="container">
-            <div class="section-label animate">FEATURES</div>
-            <h2 class="section-title animate" style="transition-delay:.08s">Everything you reach for, in one place</h2>
-            <p class="section-desc animate" style="transition-delay:.16s">A familiar POSIX surface. Real flag coverage, not stubs. Same behavior on Windows, macOS, and Linux.</p>
+<div class="grid">
+  <div class="cell">
+    <div class="cell-header">
+      <span class="cell-num">01</span>
+      <span class="cell-name">Premise</span>
+    </div>
+    <h2>The <mark>reference</mark> the family ports to.</h2>
+    <p>Mainsail is the canonical Python implementation. Easy to embed, easy to read, easy to extend — drop a module into <code>mainsail/applets/</code> with the four-symbol contract (<code>NAME</code>, <code>ALIASES</code>, <code>HELP</code>, <code>main</code>) and auto-discovery picks it up.</p>
+    <p>The applet roster, flag conventions, exit codes, and stdout byte semantics defined here are what the sister projects verify against. The tradeoff is <strong>interpreter cold-start</strong> — what it gives back is a 148 KB portable <code>.pyz</code> that runs anywhere Python 3.8+ does, and the easiest codebase in the family to fork and bend.</p>
+  </div>
 
-            <div class="bento">
-                <div class="bento-card bento-hero animate" style="transition-delay:.1s">
-                    <h3>One Binary, 84 Utilities</h3>
-                    <p>Every common shell tool dispatched through a single executable — POSIX coreutils plus <code>jq</code>, <code>http</code>, <code>dig</code>, <code>nc</code>, <code>watch</code>, <code>timeout</code>, <code>base64</code>, <code>uuidgen</code>, and the BusyBox parity gap-fillers. Run <code>mainsail install-aliases</code> once and <code>ls</code> just works.</p>
-                    <div class="mini-terminal"><span class="t-g">$</span> mainsail --list | wc -l<br><span class="t-b">84</span><br><span class="t-g">$</span> mainsail install-aliases ~/.local/bin</div>
-                </div>
-                <div class="bento-card bento-stat animate" style="transition-delay:.18s">
-                    <div class="big">5–7<span style="font-size:24px">MB</span></div>
-                    <div class="label">Native Binary</div>
-                </div>
-                <div class="bento-card animate" style="transition-delay:.2s">
-                    <h3 style="color:var(--mauve)">Native Windows</h3>
-                    <p>Runs on bare Windows — no WSL, no Cygwin, no git-bash. Recognizes <code>dir</code>, <code>type</code>, <code>copy</code>, <code>del</code>, <code>where</code> as native aliases.</p>
-                </div>
-                <div class="bento-card animate" style="transition-delay:.28s">
-                    <h3 style="color:var(--green)">Real Applets</h3>
-                    <p><code>find</code> with <code>-exec</code>, <code>-prune</code>, parens, boolean ops. <code>sed</code> with addresses and in-place edit. <code>awk</code> with BEGIN/END, patterns, arrays, gsub. <code>jq</code> with pipes, select, map, sort_by, 47 built-ins.</p>
-                </div>
-                <div class="bento-card animate" style="transition-delay:.36s">
-                    <h3 style="color:var(--peach)">Pipeline-Grade I/O</h3>
-                    <p>Binary-safe through <code>cat</code>/<code>tee</code>/<code>gzip</code>. <code>tail -f</code> with rotation detection. <code>xargs -0</code> for paths with backslashes.</p>
-                </div>
-                <div class="bento-card bento-stat animate" style="transition-delay:.1s">
-                    <div class="big" style="color:var(--teal)">402</div>
-                    <div class="label">Unit Tests</div>
-                </div>
-                <div class="bento-card bento-hero animate" style="transition-delay:.18s">
-                    <h3 style="color:var(--red)">Cross-Platform Integrity</h3>
-                    <p>Same SHA-256 of <code>"abc"</code> on every platform. <code>tar</code> archives interchangeable across OS. 23-case stress harness verifies behavior on Windows, Linux, and macOS.</p>
-                    <div class="mini-terminal"><span class="t-g">$</span> echo -n abc | mainsail sha256sum<br><span class="t-b">ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad  -</span><br><span class="t-m"># identical on Win + Linux + macOS</span></div>
-                </div>
-                <div class="bento-card animate" style="transition-delay:.26s">
-                    <h3 style="color:var(--yellow)">Hackable</h3>
-                    <p>One Python file per applet — most are 50–250 lines. Add a new one by dropping a module into <code>mainsail/applets/</code> with <code>NAME</code>, <code>HELP</code>, and <code>main(argv)</code>.</p>
-                </div>
-                <div class="bento-card animate" style="transition-delay:.34s">
-                    <h3 style="color:var(--accent1)">Portable Zipapp</h3>
-                    <p>A 148 KB <code>mainsail.pyz</code> runs anywhere Python 3.8+ is installed — ESXi hosts, exotic architectures, jailbroken routers, restrictive corporate machines. SCP, run, done.</p>
-                </div>
-                <div class="bento-card animate" style="transition-delay:.42s">
-                    <h3 style="color:var(--mauve)">Six Native Targets</h3>
-                    <p>Linux × x86_64 / ARM64 (glibc), Windows × x86_64 / ARM64, macOS ARM64, plus a separate <strong>musl-linked Linux x64</strong> binary built inside Alpine — runs on Alpine, distroless containers, and any musl-libc Linux.</p>
-                </div>
-            </div>
-        </div>
-    </section>
+  <div class="cell">
+    <div class="cell-header">
+      <span class="cell-num">02</span>
+      <span class="cell-name">Specs</span>
+    </div>
+    <h2>What's in the box.</h2>
+    <div class="feat">
+      <div class="k">BINARY</div><div class="v"><b>~6 MB Nuitka onefile</b> (zstandard) or <b>~148 KB portable .pyz</b> · runs on Python 3.8+.</div>
+      <div class="k">APPLETS</div><div class="v"><b>84 POSIX utilities</b> + <b>jq</b> (47 builtins) + <b>http</b> + <b>dig</b> + <b>nc</b> + lifecycle ops.</div>
+      <div class="k">BUILDS</div><div class="v"><b>13 release artifacts</b>: 5 native + 1 musl + 5 slim native + full + slim .pyz.</div>
+      <div class="k">LIFECYCLE</div><div class="v"><code>install-aliases</code> · <code>completions</code> (bash/zsh/fish/powershell) · <code>update</code> self-update.</div>
+      <div class="k">TESTS</div><div class="v"><b>402 unit tests</b> + 23-case stress harness · Linux / macOS / Windows.</div>
+      <div class="k">STACK</div><div class="v">Python 3.10+ · Nuitka onefile · zipapp · zero runtime deps.</div>
+    </div>
+  </div>
+</div>
 
-    <!-- Applets -->
-    <section id="applets" style="background:var(--mantle)">
-        <div class="container">
-            <div class="section-label animate">APPLETS</div>
-            <h2 class="section-title animate" style="transition-delay:.08s">All 84, organized</h2>
-            <p class="section-desc animate" style="transition-delay:.16s">Each applet implements common POSIX flags. Run <code>mainsail &lt;applet&gt; --help</code> for per-applet usage.</p>
+<div class="grid">
+  <div class="cell full">
+    <div class="cell-header">
+      <span class="cell-num">03</span>
+      <span class="cell-name">Quickstart</span>
+    </div>
+    <h2>Native binary · pipx · zipapp.</h2>
+    <p>From a release, <code>pipx</code>, source, or a portable <code>.pyz</code> you can <code>scp</code> anywhere Python 3.8+ runs.</p>
+<pre class="code"><span class="c"># From a release — no Python required</span>
+$ <span class="k">curl</span> -LO https://github.com/Real-Fruit-Snacks/mainsail/releases/latest/download/mainsail-linux-x64
+$ <span class="k">chmod</span> +x mainsail-linux-x64
+$ ./mainsail-linux-x64 --list
 
-            <div class="pill-group animate" data-accent="green">
-                <div class="pill-group-label">File operations</div>
-                <div class="pills">
-                    <div class="pill">ls<span class="alias">dir</span></div>
-                    <div class="pill">cp<span class="alias">copy</span></div>
-                    <div class="pill">mv<span class="alias">move</span></div>
-                    <div class="pill">rm<span class="alias">del</span></div>
-                    <div class="pill">mkdir<span class="alias">md</span></div>
-                    <div class="pill">touch</div>
-                    <div class="pill">find</div>
-                    <div class="pill">chmod</div>
-                    <div class="pill">ln</div>
-                    <div class="pill">stat</div>
-                    <div class="pill">truncate</div>
-                    <div class="pill">mktemp</div>
-                    <div class="pill">dd</div>
-                </div>
-            </div>
+<span class="c"># From source — Python 3.10+</span>
+$ <span class="k">git clone</span> https://github.com/Real-Fruit-Snacks/mainsail <span class="p">&amp;&amp;</span> <span class="k">cd</span> mainsail
+$ <span class="k">pip install</span> -e .
+$ mainsail --list
 
-            <div class="pill-group animate" style="transition-delay:.06s" data-accent="peach">
-                <div class="pill-group-label">Text processing</div>
-                <div class="pills">
-                    <div class="pill">cat<span class="alias">type</span></div>
-                    <div class="pill">tac</div>
-                    <div class="pill">rev</div>
-                    <div class="pill">grep</div>
-                    <div class="pill">head</div>
-                    <div class="pill">tail</div>
-                    <div class="pill">wc</div>
-                    <div class="pill">nl</div>
-                    <div class="pill">sort</div>
-                    <div class="pill">uniq</div>
-                    <div class="pill">cut</div>
-                    <div class="pill">paste</div>
-                    <div class="pill">tr</div>
-                    <div class="pill">sed</div>
-                    <div class="pill">awk</div>
-                    <div class="pill">tee</div>
-                    <div class="pill">xargs</div>
-                    <div class="pill">printf</div>
-                    <div class="pill">echo</div>
-                    <div class="pill">expand</div>
-                    <div class="pill">unexpand</div>
-                    <div class="pill">split</div>
-                    <div class="pill">cmp</div>
-                    <div class="pill">comm</div>
-                    <div class="pill">diff</div>
-                    <div class="pill">join</div>
-                    <div class="pill">fmt</div>
-                    <div class="pill">fold</div>
-                    <div class="pill">column</div>
-                    <div class="pill">od</div>
-                    <div class="pill">hexdump</div>
-                    <div class="pill">base64</div>
-                </div>
-            </div>
+<span class="c"># Or via pipx — isolated venv, mainsail on PATH</span>
+$ <span class="k">pipx install</span> git+https://github.com/Real-Fruit-Snacks/mainsail.git
 
-            <div class="pill-group animate" style="transition-delay:.09s" data-accent="cyan">
-                <div class="pill-group-label">JSON &amp; data</div>
-                <div class="pills">
-                    <div class="pill">jq</div>
-                </div>
-            </div>
+<span class="c"># Wire up your shell</span>
+$ <span class="k">mainsail</span> install-aliases ~/.local/bin                  <span class="c"># symlink ls/cat/grep/...</span>
+$ <span class="k">mainsail</span> completions bash <span class="p">|</span> sudo tee /etc/bash_completion.d/mainsail
+$ <span class="k">mainsail</span> update                                          <span class="c"># self-update</span>
 
-            <div class="pill-group animate" style="transition-delay:.12s" data-accent="mauve">
-                <div class="pill-group-label">Network</div>
-                <div class="pills">
-                    <div class="pill">http</div>
-                    <div class="pill">dig</div>
-                    <div class="pill">nc</div>
-                </div>
-            </div>
+<span class="c"># Portable zipapp — runs anywhere Python 3.8+ does</span>
+$ <span class="k">scp</span> mainsail.pyz host:/tmp/
+$ <span class="k">ssh</span> host <span class="s">'python3 /tmp/mainsail.pyz find /var/log -mtime -7'</span></pre>
+  </div>
+</div>
 
-            <div class="pill-group animate" style="transition-delay:.15s" data-accent="teal">
-                <div class="pill-group-label">Hashing & integrity</div>
-                <div class="pills">
-                    <div class="pill">md5sum</div>
-                    <div class="pill">sha1sum</div>
-                    <div class="pill">sha256sum</div>
-                    <div class="pill">sha512sum</div>
-                </div>
-            </div>
+<div class="grid">
+  <div class="cell full">
+    <div class="cell-header">
+      <span class="cell-num">04</span>
+      <span class="cell-name">Reference</span>
+    </div>
+    <h2>The applet surface.</h2>
+    <p>Run <code>mainsail --list</code> for the full set with one-line descriptions, or <code>mainsail &lt;applet&gt; --help</code> for per-applet usage and flags.</p>
+<div class="ref">
+<h4>FILE OPS</h4>
+<div><code>ls · cp · mv · rm</code><span class="desc">File operations</span></div>
+<div><code>mkdir · touch · find</code><span class="desc">Creation and traversal · -exec / -prune / -delete</span></div>
+<div><code>chmod · ln · stat</code><span class="desc">Permissions, links, inspection</span></div>
+<div><code>truncate · mktemp · dd</code><span class="desc">Size ops, temp files, block copy</span></div>
 
-            <div class="pill-group animate" style="transition-delay:.18s" data-accent="yellow">
-                <div class="pill-group-label">Archives</div>
-                <div class="pills">
-                    <div class="pill">tar</div>
-                    <div class="pill">gzip</div>
-                    <div class="pill">gunzip</div>
-                    <div class="pill">zip</div>
-                    <div class="pill">unzip</div>
-                </div>
-            </div>
+<h4>TEXT</h4>
+<div><code>cat · tac · rev</code><span class="desc">Stream and reverse</span></div>
+<div><code>grep · head · tail · wc · nl</code><span class="desc">Search, slice, count, number</span></div>
+<div><code>sort · uniq · cut · paste · tr</code><span class="desc">Field and char ops</span></div>
+<div><code>sed</code><span class="desc">s/// d p q = y/// · -i in-place · BRE+ERE</span></div>
+<div><code>awk</code><span class="desc">BEGIN/END · regex + expressions · arrays · 11+ builtins</span></div>
+<div><code>tee · xargs · printf · echo</code><span class="desc">Pipeline glue and emission</span></div>
+<div><code>expand · unexpand · split · cmp</code><span class="desc">Tab/space, splitting, comparing</span></div>
+<div><code>comm · diff · join · fmt</code><span class="desc">Set ops, diff, join, format</span></div>
+<div><code>fold · column · od · hexdump</code><span class="desc">Wrap, columnar, octal/hex dump</span></div>
+<div><code>base64</code><span class="desc">Base64 encoding/decoding</span></div>
 
-            <div class="pill-group animate" style="transition-delay:.21s" data-accent="red">
-                <div class="pill-group-label">Filesystem & paths</div>
-                <div class="pills">
-                    <div class="pill">du</div>
-                    <div class="pill">df</div>
-                    <div class="pill">basename</div>
-                    <div class="pill">dirname</div>
-                    <div class="pill">realpath</div>
-                    <div class="pill">pwd</div>
-                    <div class="pill">which<span class="alias">where</span></div>
-                </div>
-            </div>
+<h4>JSON · NETWORK</h4>
+<div><code>jq</code><span class="desc">pipes · filters · 47 builtins · -r/-c/-s</span></div>
+<div><code>http</code><span class="desc">GET/POST/PUT/DELETE/HEAD · -H · -d · @file · --json · --fail</span></div>
+<div><code>dig</code><span class="desc">UDP DNS · A/AAAA/MX/TXT/CNAME/NS/SOA/PTR · +short · -x</span></div>
+<div><code>nc</code><span class="desc">TCP netcat · connect · listen · port-scan</span></div>
 
-            <div class="pill-group animate" style="transition-delay:.24s" data-accent="lavender">
-                <div class="pill-group-label">System & control</div>
-                <div class="pills">
-                    <div class="pill">uname</div>
-                    <div class="pill">hostname</div>
-                    <div class="pill">whoami</div>
-                    <div class="pill">id</div>
-                    <div class="pill">groups</div>
-                    <div class="pill">date</div>
-                    <div class="pill">env</div>
-                    <div class="pill">sleep</div>
-                    <div class="pill">seq</div>
-                    <div class="pill">getopt</div>
-                    <div class="pill">uuidgen</div>
-                    <div class="pill">true</div>
-                    <div class="pill">false</div>
-                    <div class="pill">yes</div>
-                </div>
-            </div>
+<h4>HASHING · ARCHIVES</h4>
+<div><code>md5sum · sha1sum</code><span class="desc">MD5 / SHA-1 hashing</span></div>
+<div><code>sha256sum · sha512sum</code><span class="desc">SHA-256 / SHA-512 hashing</span></div>
+<div><code>tar</code><span class="desc">create / extract / list · gzip / bzip2 / xz</span></div>
+<div><code>gzip · gunzip · zip · unzip</code><span class="desc">Stream and zip-archive support</span></div>
 
-            <div class="pill-group animate" style="transition-delay:.27s" data-accent="pink">
-                <div class="pill-group-label">Process</div>
-                <div class="pills">
-                    <div class="pill">watch</div>
-                    <div class="pill">timeout</div>
-                </div>
-            </div>
+<h4>FILESYSTEM · PATHS · PROCESS</h4>
+<div><code>du · df</code><span class="desc">Disk usage and filesystem</span></div>
+<div><code>basename · dirname · realpath</code><span class="desc">Path manipulation</span></div>
+<div><code>pwd · which</code><span class="desc">Current directory and lookup</span></div>
+<div><code>watch · timeout</code><span class="desc">Periodic execution and timeout</span></div>
 
-            <div class="pill-group animate" style="transition-delay:.30s" data-accent="blue">
-                <div class="pill-group-label">Lifecycle</div>
-                <div class="pills">
-                    <div class="pill">install-aliases</div>
-                    <div class="pill">completions</div>
-                    <div class="pill">update</div>
-                </div>
-            </div>
-        </div>
-    </section>
+<h4>SYSTEM · CONTROL</h4>
+<div><code>uname · hostname · whoami · id</code><span class="desc">System and identity</span></div>
+<div><code>groups · date · env</code><span class="desc">Group membership, time, environment</span></div>
+<div><code>sleep · getopt · uuidgen</code><span class="desc">Pause, option parsing, UUID generation</span></div>
+<div><code>true · false · yes · seq</code><span class="desc">Exit codes and streams</span></div>
 
-    <!-- Architecture -->
-    <section id="architecture">
-        <div class="container">
-            <div class="section-label animate">ARCHITECTURE</div>
-            <h2 class="section-title animate" style="transition-delay:.08s">Four-layer dispatch</h2>
-            <p class="section-desc animate" style="transition-delay:.16s">Clean separation between the entry point, dispatch logic, applet registry, and per-applet implementations. Adding an applet means dropping one file.</p>
-            <div class="arch-grid">
-                <div class="arch-card animate" style="transition-delay:.1s">
-                    <div class="arch-num">1</div>
-                    <h3>Entry</h3>
-                    <p><code>__main__.py</code> (or the installed <code>mainsail</code> script) hands <code>sys.argv</code> to <code>cli.main()</code>. The frozen Nuitka binary uses the same entry — no separate path.</p>
-                </div>
-                <div class="arch-card animate" style="transition-delay:.2s">
-                    <div class="arch-num">2</div>
-                    <h3>Dispatch</h3>
-                    <p><code>cli.py</code> resolves the applet from <code>argv[0]</code> basename (multi-call) or <code>argv[1]</code> (subcommand). Intercepts <code>--help</code> only; <code>-h</code> stays free for applet flags like <code>df -h</code>.</p>
-                </div>
-                <div class="arch-card animate" style="transition-delay:.3s">
-                    <div class="arch-num">3</div>
-                    <h3>Registry</h3>
-                    <p><code>registry.py</code> lazy-loads <code>mainsail.applets.*</code> via <code>pkgutil.iter_modules</code> on first call. Each module exposes <code>NAME</code>, <code>ALIASES</code>, <code>HELP</code>, and <code>main(argv) -> int</code>.</p>
-                </div>
-                <div class="arch-card animate" style="transition-delay:.4s">
-                    <div class="arch-num">4</div>
-                    <h3>Applets</h3>
-                    <p>84 modules in <code>mainsail/applets/</code>, ranging from ~10 lines (<code>true</code>) to ~1800 (<code>awk</code>). Read binary via <code>sys.stdin.buffer</code>; write via <code>sys.stdout</code> / <code>sys.stdout.buffer</code>. Return 0 / 1 / 2 (success / runtime / usage).</p>
-                </div>
-            </div>
-        </div>
-    </section>
+<h4>LIFECYCLE &nbsp;<span style="color:var(--ov0)">// not in sister ports</span></h4>
+<div><code>install-aliases</code><span class="desc">Symlink every applet into a target dir</span></div>
+<div><code>completions</code><span class="desc">Emit bash/zsh/fish/powershell scripts</span></div>
+<div><code>update</code><span class="desc">Self-update from latest GitHub release · keeps .old</span></div>
 
-    <!-- Getting Started -->
-    <section style="background:var(--mantle)">
-        <div class="container">
-            <div class="section-label animate">GETTING STARTED</div>
-            <h2 class="section-title animate" style="transition-delay:.08s">Install or build</h2>
-            <p class="section-desc animate" style="transition-delay:.16s">Pre-built binaries on the releases page. Install from PyPI for hackability. Build from source for the full standalone experience.</p>
-            <div class="two-col">
-                <div class="terminal animate" style="transition-delay:.1s">
-                    <div class="terminal-bar"><span class="terminal-dot"></span><span class="terminal-dot"></span><span class="terminal-dot"></span><span class="terminal-label">install.sh</span></div>
-                    <div class="terminal-body"><pre><span class="t-m"># From source</span>
-<span class="t-g">$</span> git clone https://github.com/Real-Fruit-Snacks/mainsail.git
-<span class="t-g">$</span> cd mainsail && pip install -e .
+<h4>RELEASE ARTIFACTS &nbsp;<span style="color:var(--ov0)">// 13 per release tag</span></h4>
+<div><code>mainsail-linux-x64</code><span class="desc">Linux x86_64 (glibc 2.35+) · -slim variant</span></div>
+<div><code>mainsail-linux-arm64</code><span class="desc">Linux ARM64 (glibc 2.39+) · -slim variant</span></div>
+<div><code>mainsail-linux-x64-musl</code><span class="desc">Alpine / distroless / scratch (musl libc)</span></div>
+<div><code>mainsail-windows-x64.exe</code><span class="desc">Windows x86_64 · -slim variant</span></div>
+<div><code>mainsail-windows-arm64.exe</code><span class="desc">Windows ARM64 · -slim variant</span></div>
+<div><code>mainsail-macos-arm64</code><span class="desc">Apple Silicon · -slim variant</span></div>
+<div><code>mainsail.pyz</code><span class="desc">Portable zipapp · 148 KB · Python 3.8+</span></div>
+<div><code>mainsail-slim.pyz</code><span class="desc">Slim zipapp · 75 KB · POSIX coreutils only</span></div>
 
-<span class="t-g">$</span> mainsail --version
-<span class="t-b">mainsail 0.3.1</span>
+<h4>BUILD PRESETS</h4>
+<div><code>--preset full</code><span class="desc">84 applets (default)</span></div>
+<div><code>--preset slim</code><span class="desc">39 applets · POSIX coreutils only</span></div>
+<div><code>--preset minimal</code><span class="desc">18 applets · scripting essentials</span></div>
+<div><code>--applets ls,cat,...</code><span class="desc">Hand-picked subset</span></div>
+</div>
+  </div>
+</div>
 
-<span class="t-m"># Or freeze a standalone binary
-# (CI ships glibc + musl variants on every release)</span>
-<span class="t-g">$</span> pip install "Nuitka[onefile]"
-<span class="t-g">$</span> python build.py
-<span class="t-b">→ dist/mainsail (~6 MB, no Python at runtime)</span>
+<div class="grid">
+  <div class="cell">
+    <div class="cell-header">
+      <span class="cell-num">05</span>
+      <span class="cell-name">Architecture</span>
+    </div>
+    <h2>Four files, auto-discovered applets.</h2>
+    <p>Adding an applet means dropping a module into <code>mainsail/applets/</code> with the four-symbol contract. <code>registry.py</code>'s <code>pkgutil.iter_modules</code> picks it up on next launch — no registration table to edit.</p>
+<pre class="code"><span class="c">mainsail/</span>
+__main__.py     <span class="c">// entry → cli.main(argv)</span>
+cli.py          <span class="c">// dispatch · argv[0] basename + subcommand</span>
+registry.py     <span class="c">// auto-discovery · NAME + ALIASES → main</span>
+usage.py        <span class="c">// per-applet --help</span>
+common.py       <span class="c">// shared helpers</span>
+applets/        <span class="c">// 84 modules</span>
+  ls.py         <span class="c">// NAME, ALIASES, HELP, main(argv) -&gt; int</span>
+  cat.py
+  …</pre>
+    <p style="color:var(--ov1);font-size:14px;font-style:italic;margin-top:18px">Stdin via <code>sys.stdin.buffer</code> for binary safety; stdout via <code>sys.stdout.buffer</code> when bytes are required. Exit codes: 0 success · 1 runtime · 2 usage.</p>
+  </div>
 
-<span class="t-m"># Or a portable zipapp — runs on any Python 3.8+
-# (ESXi, exotic arches, restricted hosts)</span>
-<span class="t-g">$</span> python build.py --pyz
-<span class="t-b">→ dist/mainsail.pyz (~148 KB)</span>
+  <div class="cell">
+    <div class="cell-header">
+      <span class="cell-num">06</span>
+      <span class="cell-name">The Family</span>
+    </div>
+    <h2>One contract, six runtimes.</h2>
+    <p>Mainsail defines the contract. The sister ports verify against it byte-for-byte where they overlap.</p>
+    <div class="family">
+      <div class="row head">
+        <div>NAME</div><div>STACK</div><div>NICHE</div>
+      </div>
+      <div class="row me">
+        <div class="name">mainsail</div>
+        <div class="lang">Python</div>
+        <div class="desc">Reference. ~6 MB Nuitka or ~148 KB pyz · the contract everything else verifies against.</div>
+      </div>
+      <div class="row">
+        <div class="name"><a href="https://github.com/Real-Fruit-Snacks/jib">jib</a></div>
+        <div class="lang">Rust</div>
+        <div class="desc">~2 MB stripped, native Windows without WSL. Cargo features gate applet groups.</div>
+      </div>
+      <div class="row">
+        <div class="name"><a href="https://github.com/Real-Fruit-Snacks/topsail">topsail</a></div>
+        <div class="lang">Go</div>
+        <div class="desc">~3 MB statically-linked. Runs on scratch / distroless / Alpine. .deb/.rpm/.apk per release.</div>
+      </div>
+      <div class="row">
+        <div class="name"><a href="https://github.com/Real-Fruit-Snacks/Staysail">staysail</a></div>
+        <div class="lang">Zig</div>
+        <div class="desc">~1 MB statically-linked. 8 native cross-targets. Fills mainsail's static-musl/arm64 gaps.</div>
+      </div>
+      <div class="row">
+        <div class="name"><a href="https://github.com/Real-Fruit-Snacks/Moonraker">moonraker</a></div>
+        <div class="lang">Lua</div>
+        <div class="desc">~1.2 MB via luastatic — interpreter, scripts, and C deps embedded into one binary.</div>
+      </div>
+      <div class="row">
+        <div class="name"><a href="https://github.com/Real-Fruit-Snacks/rill">rill</a></div>
+        <div class="lang">NASM</div>
+        <div class="desc">~108 KB pure x86_64 assembly. No libc. 41 utilities, 329 tests.</div>
+      </div>
+    </div>
+  </div>
+</div>
 
-<span class="t-m"># Or a custom subset — slim drops archives + hashing,
-# minimal is bare essentials, --applets picks any set</span>
-<span class="t-g">$</span> python build.py --preset slim
-<span class="t-b">→ dist/mainsail-slim (39 applets)</span>
-<span class="t-g">$</span> python build.py --pyz --applets ls,cat,grep,sed,awk
-<span class="t-b">→ dist/mainsail-custom.pyz (~36 KB; ~21 KB without awk)</span></pre></div>
-                </div>
-                <div class="terminal animate" style="transition-delay:.25s">
-                    <div class="terminal-bar"><span class="terminal-dot"></span><span class="terminal-dot"></span><span class="terminal-dot"></span><span class="terminal-label">usage.sh</span></div>
-                    <div class="terminal-body"><pre><span class="t-m"># Daily pipelines (find + awk + jq, all in one binary)</span>
-<span class="t-g">$</span> mainsail find . -name '*.py' -mtime -7
-<span class="t-g">$</span> mainsail awk -F, '{s+=$3} END{print s/NR}' data.csv
+<div class="band">
+  <div class="band-tag">→ DOWNLOAD</div>
+  <h3>The reference implementation.<br>Four files. 84 applets.</h3>
+  <a class="cta" href="https://github.com/Real-Fruit-Snacks/mainsail/releases/latest">Latest release</a>
+</div>
 
-<span class="t-m"># Real jq</span>
-<span class="t-g">$</span> mainsail jq '.servers[] | select(.region == "us") | .name' inv.json
+<footer>
+  <span>© 2026 Real-Fruit-Snacks · MIT</span>
+  <span>
+    <a href="https://real-fruit-snacks.github.io/">all 50 projects</a> &nbsp;·&nbsp;
+    <a href="https://github.com/Real-Fruit-Snacks/mainsail">github</a> &nbsp;·&nbsp;
+    <a href="https://github.com/Real-Fruit-Snacks/mainsail/blob/main/CHANGELOG.md">changelog</a>
+  </span>
+</footer>
 
-<span class="t-m"># HTTP + DNS without curl/dig installed</span>
-<span class="t-g">$</span> mainsail http -H 'Authorization: Bearer $T' https://api/me
-<span class="t-g">$</span> mainsail dig MX gmail.com +short
-
-<span class="t-m"># Tab-complete applets, then keep current</span>
-<span class="t-g">$</span> mainsail completions bash | sudo tee /etc/bash_completion.d/mainsail
-<span class="t-g">$</span> mainsail update                  <span class="t-m"># self-update from latest release</span>
-
-<span class="t-m"># ESXi via the portable zipapp</span>
-<span class="t-g">$</span> ssh esxi 'python3 mainsail.pyz du -h /vmfs/...'</pre></div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <div class="footer-line"></div>
-            <div class="footer-grid">
-                <div>
-                    <h4>Documentation</h4>
-                    <ul>
-                        <li><a href="https://github.com/Real-Fruit-Snacks/mainsail#quick-start">Quick Start</a></li>
-                        <li><a href="https://github.com/Real-Fruit-Snacks/mainsail#features">Features</a></li>
-                        <li><a href="https://github.com/Real-Fruit-Snacks/mainsail#supported-applets">Applets</a></li>
-                        <li><a href="https://github.com/Real-Fruit-Snacks/mainsail#architecture">Architecture</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4>Resources</h4>
-                    <ul>
-                        <li><a href="https://github.com/Real-Fruit-Snacks/mainsail/releases/latest">Latest Release</a></li>
-                        <li><a href="https://github.com/Real-Fruit-Snacks/mainsail/issues">Report Issue</a></li>
-                        <li><a href="https://github.com/Real-Fruit-Snacks/mainsail#development">Development</a></li>
-                        <li><a href="https://github.com/Real-Fruit-Snacks/mainsail/actions">CI Status</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4>Toolkit</h4>
-                    <ul>
-                        <li><a href="https://github.com/Real-Fruit-Snacks/Flux">Flux</a></li>
-                        <li><a href="https://github.com/Real-Fruit-Snacks/Aquifer">Aquifer</a></li>
-                        <li><a href="https://github.com/Real-Fruit-Snacks/Cascade">Cascade</a></li>
-                        <li><a href="https://github.com/Real-Fruit-Snacks">View All →</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4>License</h4>
-                    <p>MIT License<br>Copyright © 2026<br>Real-Fruit-Snacks</p>
-                </div>
-            </div>
-            <div class="footer-bottom">Part of the Real-Fruit-Snacks water-themed toolkit</div>
-        </div>
-    </footer>
-
-    <script>
-    // Scroll animations
-    const obs=new IntersectionObserver(e=>{e.forEach(el=>{if(el.isIntersecting){el.target.classList.add('visible');obs.unobserve(el.target)}})},{threshold:.1,rootMargin:'0px 0px -50px 0px'});
-    document.querySelectorAll('.animate,.animate-scale').forEach(el=>obs.observe(el));
-
-    // Counter animation
-    function countUp(el){const t=parseInt(el.dataset.target),s=el.dataset.suffix||'',p=el.dataset.prefix||'',d=1500,st=performance.now();function u(n){const pr=Math.min((n-st)/d,1),e=1-Math.pow(1-pr,3);el.textContent=p+Math.floor(t*e)+s;if(pr<1)requestAnimationFrame(u)}requestAnimationFrame(u)}
-    const sobs=new IntersectionObserver(e=>{e.forEach(el=>{if(el.isIntersecting){countUp(el.target);sobs.unobserve(el.target)}})},{threshold:.5});
-    document.querySelectorAll('.stat-num').forEach(el=>sobs.observe(el));
-
-    // Nav scroll
-    window.addEventListener('scroll',()=>{document.querySelector('.nav').style.borderBottomColor=window.scrollY>20?'rgba(49,50,68,0.8)':'rgba(49,50,68,0.3)'});
-    </script>
 </body>
 </html>
